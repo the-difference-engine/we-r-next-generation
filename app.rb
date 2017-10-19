@@ -15,3 +15,12 @@ post '/api/v1/hello' do
   name = params[:name]
   json({msg: "hello #{name}!"})
 end
+
+
+# get '/api/v1/users/:user_id/profile'
+
+# post '/api/v1/users/:user_id/profile'
+
+# get '/api/v1/applications/volunteers'
+
+# post '/api/v1/applications/volunteers'
