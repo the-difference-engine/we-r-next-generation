@@ -66,20 +66,16 @@ end
 
 
 post '/api/v1/users/:user_id/profile' do
+user_id = params[:user_id]
+  
+  users.each do |user_object|
+    this_id = user_object[:user_id]
+    if this_id === user_id 
 
-  {
-    full_name: "Jon Doe",
-    address_1: " 4 Matadi Street",
-    address_2: " Plot 8c Metalbox   road, off Acme road",
-    town: "Ogba",
-    province: "Ikeja lagos",
-    zip: "20303",
-    country: "Nigeria",
-    email: "user@gmail.com",
-    phone_number: "555-555-5555",
-    password: "xxxxxx",
-    profile_img: "url_image"
-  }.to_json
+    return user_object.to_json
+    end
+
+  end
 end
 
 
