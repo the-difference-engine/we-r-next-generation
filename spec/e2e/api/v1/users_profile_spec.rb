@@ -12,6 +12,7 @@ describe 'UsersProfileE2E' do
 
     it 'have a full_name property with the value of "Jon Doe"' do
       json[:full_name].must_equal 'Jon Doe'
+
       # ... other fields e.g. address_1, zip, country, email, phone_number etc.
     end
 
