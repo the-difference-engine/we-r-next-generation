@@ -19,7 +19,7 @@ end
 users = [
   {
     full_name: "Jon Doe",
-    user_id: "1",
+    'user_id': "1",
     address_1: " 4 Matadi Street",
     address_2: " Plot 8c Metalbox   road, off Acme road",
     town: "Ogba",
@@ -33,7 +33,7 @@ users = [
   },
   {
     full_name: "Kyle Kuhn",
-    user_id: "2",
+    'user_id': "2",
     address_1: " 4 Matadi Street",
     address_2: " Plot 8c Metalbox   road, off Acme road",
     town: "Ogba",
@@ -48,34 +48,21 @@ users = [
 
 ]
 
- get '/api/v1/users/:user_id/profile' do
-  # get the id from the params, grab user by id number
-  # return json representing all fields of the user onject
-  user_id = params[:user_id]
-  
+get '/api/v1/users/:user_id/profile' do
   users.each do |user_object|
-    this_id = user_object[:user_id]
-    if this_id === user_id 
-
-    return user_object.to_json
+    this_id = user_object['user_id'] || user_object[:user_id]
+    if this_id == params['user_id']
+      return user_object.to_json
     end
-
   end
+  status 404
 end
 
 
 
 post '/api/v1/users/:user_id/profile' do
-user_id = params[:user_id]
-  
-  users.each do |user_object|
-    this_id = user_object[:user_id]
-    if this_id === user_id 
-
-    return user_object.to_json
-    end
-
-  end
+  users << params.to_h
+  status 201
 end
 
 
