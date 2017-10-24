@@ -63,6 +63,7 @@ end
 post '/api/v1/users/:user_id/profile' do
   users << params.to_h
   status 201
+  json({})
 end
 
 

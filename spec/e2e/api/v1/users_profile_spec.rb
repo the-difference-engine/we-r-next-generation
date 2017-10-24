@@ -16,16 +16,16 @@ describe 'UsersProfileE2E' do
     end
 
   end
-  #
-  # describe 'POST /api/v1/users/:user_id/profile' do
-  #   before do
-  #     post_json('/api/v1/users/3/profile', {full_name: "Sam Doe"})
-  #   end
-  #
-  #   it 'responds successfully' do
-  #     get_json('/api/v1/users/3/profile')[:full_name].must_equal "Sam Doe"
-  #   end
-  #
-  # end
+
+  describe 'POST /api/v1/users/:user_id/profile' do
+    before do
+      post_json('/api/v1/users/3/profile', {:full_name => "Sam Doe"})
+    end
+
+    it 'responds successfully' do
+      get_json('/api/v1/users/3/profile')[:full_name].must_equal "Sam Doe"
+    end
+
+  end
 
 end
