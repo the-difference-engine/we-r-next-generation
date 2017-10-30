@@ -21,7 +21,6 @@ end
 
 # post '/api/v1/users/:user_id/profile'
 
-# db = File.read("./db/data")
 db = {
   volunteers: [
     {
