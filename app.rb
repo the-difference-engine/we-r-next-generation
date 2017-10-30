@@ -21,6 +21,42 @@ end
 
 # post '/api/v1/users/:user_id/profile'
 
-# get '/api/v1/applications/volunteers'
+db = {
+  volunteers: [
+    {
+      full_name: "Victor Lee",
+      email: "vlee@gmail.com",
+      address: "1 Chicago Ave",
+      phone_number: "312-345-6655",
+      bio: "Hey",
+      signature: "VL",
+      camp_id: "1",
+      status: "Active",
+      user_id: 1
+    },
+    {
+      full_name: "Victor Lee2",
+      email: "vlee@gmail.com",
+      address: "1 Chicago Ave",
+      phone_number: "312-345-6655",
+      bio: "Hey",
+      signature: "VL",
+      camp_id: "1",
+      status: "Active",
+      user_id: 1
+    }
+  ]
+}
 
-# post '/api/v1/applications/volunteers'
+get '/api/v1/applications/volunteers' do
+
+  data = {}
+  data[:data] = db[:volunteers]
+  json data
+end
+
+
+post '/api/v1/applications/volunteers' do
+  db[:volunteers] << params
+  json db
+end
