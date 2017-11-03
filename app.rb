@@ -21,7 +21,8 @@ end
 
 # post '/api/v1/users/:user_id/profile'
 
-v_id = 1
+vol_app_id = 1
+camp_app_id = 1
 
 db = {
   volunteers: [
@@ -47,34 +48,34 @@ db = {
     # }
   ],
   camps: [
-    {
-      parent_name: "Michael Lee",
-      email: "mlee@gmail.com",
-      address: "321 Park Blvd",
-      phone_number: "886-229-5088",
-      child_name: "Harry Lee",
-      child_age: 1,
-      camp_id: 1,
-      benefit: "Harry can be the next Picasso",
-      signature: "Michael Lee",
-      app_id: 1
-    },
-    {
-      parent_name: "Michael Hwang",
-      email: "mhwang@gmail.com",
-      address: "322 S Michgan Ave",
-      phone_number: "630-839-3109",
-      child_name: "Evan Hwang",
-      child_age: 1,
-      camp_id: 2,
-      benefit: "Evan can be the next Jeremy Lin",
-      signature: "Michael Hwang",
-      app_id: 2
-    }
+    # {
+    #   parent_name: "Michael Lee",
+    #   email: "mlee@gmail.com",
+    #   address: "321 Park Blvd",
+    #   phone_number: "886-229-5088",
+    #   child_name: "Harry Lee",
+    #   child_age: 1,
+    #   camp_id: 1,
+    #   benefit: "Harry can be the next Picasso",
+    #   signature: "Michael Lee",
+    #   app_id: 1
+    # },
+    # {
+    #   parent_name: "Michael Hwang",
+    #   email: "mhwang@gmail.com",
+    #   address: "322 S Michgan Ave",
+    #   phone_number: "630-839-3109",
+    #   child_name: "Evan Hwang",
+    #   child_age: 1,
+    #   camp_id: 2,
+    #   benefit: "Evan can be the next Jeremy Lin",
+    #   signature: "Michael Hwang",
+    #   app_id: 2
+    # }
   ]
 }
 
-# Volunteer Applications 
+# Volunteer Applications
 
 get '/api/v1/applications/volunteers' do
   data = {}
@@ -85,8 +86,8 @@ end
 
 post '/api/v1/applications/volunteers' do
   db[:volunteers] << params
-  db[:volunteers][-1][:volunteer_id] = v_id
-  v_id += 1
+  db[:volunteers][-1][:volunteer_id] = vol_app_id
+  vol_app_id += 1
   data = {}
   data[:data] = db[:volunteers]
   json data
@@ -116,7 +117,11 @@ end
 
 post '/api/v1/applications/camps' do
   db[:camps] << params
-  json db
+  db[:camps][-1][:camp_app_id] = camp_app_id
+  camp_app_id += 1
+  data = {}
+  data[:data] = db[:camps]
+  json data
 end
 
 get '/api/v1/applications/camps/:id' do
