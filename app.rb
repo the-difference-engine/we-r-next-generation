@@ -93,13 +93,10 @@ end
 get '/api/v1/applications/volunteers/:id' do
   v = params[:id].to_i
     db[:volunteers].each do |volunteer|
-      if volunteer[v_id] == v
-      p volunteer
+      if volunteer[:volunteer_id] == v
+        return volunteer.to_json
+      end
     end
-  data = {}
-  data[:data] = db[:volunteers]
-  json data
-
 end
 
 get '/api/v1/applications/camps' do
@@ -109,7 +106,6 @@ get '/api/v1/applications/camps' do
 end
 
 post '/api/v1/applications/camps' do
-
   db[:camps] << params
   json db
 end
