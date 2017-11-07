@@ -17,11 +17,32 @@ post '/api/v1/hello' do
 end
 
 
-# get '/api/v1/users/:user_id/profile'
-
-# post '/api/v1/users/:user_id/profile'
 
 db = {
+  profiles: [
+    {
+      "full_name": "Kyle Kuhn",
+      "email": "kisle.kuhn1@gmail.com",
+      "address": "215 Ohio Ave",
+      "phone_number": "111-222-3344",
+      "signature": "KK",
+      "camp_id": "1",
+      "status": "Active"
+
+    },
+    {
+      "full_name": "joe Kuhn",
+      "email": "kisle.kuhn1@gmail.com",
+      "address": "215 Ohio Ave",
+      "phone_number": "111-222-3344",
+      "signature": "KK",
+      "camp_id": "1",
+      "status": "Active",
+      "profile_id": 10
+
+    }
+    ],
+
   volunteers: [
     {
       full_name: "Victor Lee",
@@ -47,6 +68,43 @@ db = {
     }
   ]
 }
+
+
+# get 1
+get '/api/v1/profile/:profile_id' do
+  db[:profiles].each do |profile|
+    if profile[:profile_id] == params[:profile_id].to_i
+      return profile.to_json
+    end
+  end
+end
+
+
+
+# post new
+profile_cnter = 0
+post '/api/v1/profile/:profile_id' do
+  profile_cnter += 1
+  params[:profile_id] = profile_cnter
+  db[:profiles] << params
+  json db
+end
+
+# get all
+get '/api/v1/profile' do
+  data = {}
+  data[:data] = db[:profiles]
+  json data
+end
+
+#update 1
+
+# not working yet
+put '/api/v1/profile/:profile_id' do
+  
+
+end
+
 
 get '/api/v1/applications/volunteers' do
 
