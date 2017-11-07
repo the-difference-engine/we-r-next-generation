@@ -18,6 +18,9 @@ end
 
 
 
+vol_app_id = 1
+camp_app_id = 1
+
 db = {
   profiles: [
     {
@@ -41,8 +44,7 @@ db = {
       "profile_id": 10
 
     }
-    ],
-
+  ],
   volunteers: [
     {
       full_name: "Victor Lee",
@@ -68,6 +70,8 @@ db = {
     }
   ]
 }
+
+# Volunteer Applications
 
 
 # get 1
@@ -101,13 +105,12 @@ end
 
 # not working yet
 put '/api/v1/profile/:profile_id' do
-  
+
 
 end
 
 
 get '/api/v1/applications/volunteers' do
-
   data = {}
   data[:data] = db[:volunteers]
   json data
@@ -116,5 +119,48 @@ end
 
 post '/api/v1/applications/volunteers' do
   db[:volunteers] << params
-  json db
+  db[:volunteers][-1][:volunteer_id] = vol_app_id
+  vol_app_id += 1
+  data = {}
+  data[:data] = db[:volunteers]
+  json data
 end
+
+get '/api/v1/applications/volunteers/:id' do
+    db[:volunteers].each do |volun|
+      if volun[:volunteer_id] == params[:id].to_i
+        data = {}
+        data[:data] = volun
+        return data.to_json
+      end
+    end
+end
+
+put '/api/v1/applications/volunteers/:id' do
+
+end
+
+# Camp Applications
+
+get '/api/v1/applications/camps' do
+  data = {}
+  data[:data] = db[:camps]
+  json data
+end
+
+post '/api/v1/applications/camps' do
+  db[:camps] << params
+  db[:camps][-1][:camp_app_id] = camp_app_id
+  camp_app_id += 1
+  data = {}
+  data[:data] = db[:camps]
+  json data
+end
+
+get '/api/v1/applications/camps/:id' do
+  camp = params[:id].to_i
+  data = {}
+  data[:data] = db[:camps][camp]
+  json data
+end
+
