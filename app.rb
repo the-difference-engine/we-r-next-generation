@@ -9,7 +9,7 @@ require 'mongo'
 use Rack::PostBodyContentTypeParser
 # Set MONGODB_URL
 database = Mongo::Client.new(ENV["MONGODB_URL"])
-
+# puts database.collection_names
 get '/api/v1/hello' do
   json({msg: 'hello world!'})
 end
@@ -24,7 +24,7 @@ end
 vol_app_id = 1
 camp_app_id = 1
 
-db = {
+old_database = {
   profiles: [
     {
       "full_name": "Kyle Kuhn",
@@ -79,7 +79,7 @@ db = {
 
 # get 1
 get '/api/v1/profile/:profile_id' do
-  db[:profiles].each do |profile|
+  old_database[:profiles].each do |profile|
     if profile[:profile_id] == params[:profile_id].to_i
       return profile.to_json
     end
@@ -93,14 +93,14 @@ profile_cnter = 0
 post '/api/v1/profile/:profile_id' do
   profile_cnter += 1
   params[:profile_id] = profile_cnter
-  db[:profiles] << params
-  json db
+  old_database[:profiles] << params
+  json old_database
 end
 
 # get all
 get '/api/v1/profile' do
   data = {}
-  data[:data] = db[:profiles]
+  data[:data] = old_database[:profiles]
   json data
 end
 
@@ -115,22 +115,22 @@ end
 
 get '/api/v1/applications/volunteers' do
   data = {}
-  data[:data] = db[:volunteers]
+  data[:data] = old_database[:volunteers]
   json data
 end
 
 
 post '/api/v1/applications/volunteers' do
-  db[:volunteers] << params
-  db[:volunteers][-1][:volunteer_id] = vol_app_id
+  old_database[:volunteers] << params
+  old_database[:volunteers][-1][:volunteer_id] = vol_app_id
   vol_app_id += 1
   data = {}
-  data[:data] = db[:volunteers]
+  data[:data] = old_database[:volunteers]
   json data
 end
 
 get '/api/v1/applications/volunteers/:id' do
-    db[:volunteers].each do |volun|
+    old_database[:volunteers].each do |volun|
       if volun[:volunteer_id] == params[:id].to_i
         data = {}
         data[:data] = volun
@@ -146,24 +146,31 @@ end
 # Camp Applications
 
 get '/api/v1/applications/camps' do
-  data = {}
-  data[:data] = db[:camps]
+  data = []
+  database[:camps].find(:full_name => "Victor Lee").each do |document|
+  # database[:camps].find.each do |document|
+    data << document.to_h
+  end
   json data
 end
 
 post '/api/v1/applications/camps' do
-  db[:camps] << params
-  db[:camps][-1][:camp_app_id] = camp_app_id
+  old_database[:camps] << params
+  old_database[:camps][-1][:camp_app_id] = camp_app_id
   camp_app_id += 1
   data = {}
-  data[:data] = db[:camps]
+  data[:data] = old_database[:camps]
   json data
 end
 
-get '/api/v1/applications/camps/:id' do
-  camp = params[:id].to_i
-  data = {}
-  data[:data] = db[:camps][camp]
+
+get '/api/v1/applications/camps/:_id' do
+
+
+data = []
+  database[:camps].find(:_id => BSON::ObjectId(params[:_id])).each do |document|
+    data << document.to_h
+  end
   json data
 end
 
