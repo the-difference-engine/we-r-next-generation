@@ -92,7 +92,6 @@ end
 
 # get all
 get '/api/v1/profile' do
-
   data = {}
   data[:data] = db[:profiles]
   json data
@@ -102,12 +101,7 @@ end
 
 # not working yet
 put '/api/v1/profile/:profile_id' do
-  db[:profiles].each do |profile|
-    if profile[:profile_id] == params[:profile_id].to_i
-      db[:profiles] << params
-      return profile.to_json
-    end
-  end
+  
 
 end
 
