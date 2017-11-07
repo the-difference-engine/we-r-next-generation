@@ -10,7 +10,7 @@ gem 'rack-contrib'
 gem 'sinatra', require: "sinatra/base"
 gem 'sinatra-contrib'
 gem 'multi_json'
-
+gem 'mongo'
 
 # for tests
 group :test do

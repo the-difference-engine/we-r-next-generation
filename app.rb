@@ -4,8 +4,11 @@ require 'sinatra'
 require 'sinatra/json'
 require 'rack'
 require 'rack/contrib'
+require 'mongo'
 
 use Rack::PostBodyContentTypeParser
+# Set MONGODB_URL
+database = Mongo::Client.new(ENV["MONGODB_URL"])
 
 get '/api/v1/hello' do
   json({msg: 'hello world!'})
@@ -13,10 +16,10 @@ end
 
 post '/api/v1/hello' do
   name = params[:name]
-  json({msg: "hello #{name}!"})
+  record = {msg: "hello #{name}!"}
+  database[:bob].insert_one(record)
+  json(record)
 end
-
-
 
 vol_app_id = 1
 camp_app_id = 1
