@@ -129,14 +129,10 @@ post '/api/v1/applications/volunteers' do
 end
 
 get '/api/v1/applications/volunteers/:_id' do
-  data= []
-    database[:volunteers].each do |volunteer|
-      if volunteer[:volunteer_id] == params[:id].to_i
-        data = {}
-        data[:data] = volun
-        return data.to_json
-      end
-    end
+  data = []
+  database[:volunteers].find(:_id => BSON::ObjectID(params[:_id])).each do |volunteer|
+    data << volunteer.to_h
+  end
 end
 
 put '/api/v1/applications/volunteers/:id' do
