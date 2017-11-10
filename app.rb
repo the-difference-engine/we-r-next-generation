@@ -123,19 +123,14 @@ end
 
 get '/api/v1/applications/volunteers/:_id' do
   data = []
-  database[:volunteers].find(:_id => BSON::ObjectId(params[:_id])).each do |volunteer|
-    data << volunteer.to_h
-  end
+  data << database[:volunteers].find(:_id => BSON::ObjectId(params[:_id])).first
   json data
 end
 
 
 
 post '/api/v1/applications/volunteers' do
-  database[:volunteers].insert_one(params)
-  data = {}
-  data[:data] = db[:volunteers].to_h
-  json data
+  database[:volunteers].insert_one(params).to_json
 end
 
 
