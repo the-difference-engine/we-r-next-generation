@@ -48,6 +48,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  bson
   codeclimate-test-reporter
   minitest
   minitest-rg

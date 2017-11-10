@@ -74,9 +74,6 @@ db = {
   ]
 }
 
-# Volunteer Applications
-
-
 # get 1
 get '/api/v1/profile/:profile_id' do
   db[:profiles].each do |profile|
@@ -112,16 +109,16 @@ put '/api/v1/profile/:profile_id' do
 
 end
 
+# Volunteer Applications
 
 get '/api/v1/applications/volunteers' do
-  data = {}
-  data[:data] = db[:volunteers]
-  json data
+  database[:volunteers].find.each do |volunteer|
+    p volunteer.to_json
+  end
 end
 
-
 post '/api/v1/applications/volunteers' do
-  db[:volunteers] << params
+  database[:volunteers] << params
   db[:volunteers][-1][:volunteer_id] = vol_app_id
   vol_app_id += 1
   data = {}
