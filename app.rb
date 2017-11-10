@@ -99,9 +99,11 @@ end
 
 # get all
 get '/api/v1/profile' do
-  data = {}
-  data[:data] = old_database[:profiles]
-  json data
+    data=[]
+    database[:profiles].find.each do |people|
+      data << people.to_h
+    end
+  json(data)
 end
 
 #update 1
