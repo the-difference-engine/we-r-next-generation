@@ -122,21 +122,19 @@ end
 
 
 get '/api/v1/applications/volunteers/:_id' do
-  data = []
-  data << database[:volunteers].find(:_id => BSON::ObjectId(params[:_id])).first
-  json data
+  json database[:volunteers].find(:_id => BSON::ObjectId(params[:_id])).first
 end
 
 
 
 post '/api/v1/applications/volunteers' do
-  database[:volunteers].insert_one(params).to_json
+  json database[:volunteers].insert_one(params)
 end
 
 
 
 put '/api/v1/applications/volunteers/:id' do
-
+  database[:volunteers].find(:_id => BSON::ObjectId(params[:_id]))
 end
 
 # Camp Applications
