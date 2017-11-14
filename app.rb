@@ -78,14 +78,11 @@ old_database = {
 
 # post new
 profile_cnter = 0
-post '/api/v1/profile/:profile_id' do
-  profile_cnter += 1
-  params[:profile_id] = profile_cnter
-  old_database[:profiles] << params
-  json old_database
+post '/api/v1/profiles' do
+  json database[:profiles].insert_one(params)
 end
 
-get '/api/v1/profile/:profile_id' do
+get '/api/v1/profiles/:profile_id' do
   profile_id = params[:profile_id]
   obj_id = BSON::ObjectId(profile_id)
   profile_table = database[:profiles]
@@ -96,7 +93,7 @@ get '/api/v1/profile/:profile_id' do
 end
 
 # get all
-get '/api/v1/profile' do
+get '/api/v1/profiles' do
     data=[]
     database[:profiles].find.each do |people|
       data << people.to_h
