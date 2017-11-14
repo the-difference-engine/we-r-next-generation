@@ -76,29 +76,24 @@ old_database = {
 
 # Volunteer Applications
 
-
-# get 1
-get '/api/v1/profile/:profile_id' do
-  old_database[:profiles].each do |profile|
-    if profile[:profile_id] == params[:profile_id].to_i
-      return profile.to_json
-    end
-  end
-end
-
-
-
 # post new
 profile_cnter = 0
-post '/api/v1/profile/:profile_id' do
-  profile_cnter += 1
-  params[:profile_id] = profile_cnter
-  old_database[:profiles] << params
-  json old_database
+post '/api/v1/profiles' do
+  json database[:profiles].insert_one(params)
+end
+
+get '/api/v1/profiles/:profile_id' do
+  profile_id = params[:profile_id]
+  obj_id = BSON::ObjectId(profile_id)
+  profile_table = database[:profiles]
+  query_reults = profile_table.find(:_id => obj_id)
+  match = query_reults.first
+  json(match.to_h)
+
 end
 
 # get all
-get '/api/v1/profile' do
+get '/api/v1/profiles' do
     data=[]
     database[:profiles].find.each do |people|
       data << people.to_h
@@ -107,12 +102,6 @@ get '/api/v1/profile' do
 end
 
 #update 1
-
-# not working yet
-put '/api/v1/profile/:profile_id' do
-
-
-end
 
 
 get '/api/v1/applications/volunteers' do
