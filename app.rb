@@ -74,8 +74,10 @@ old_database = {
   ]
 }
 
-# Volunteer Applications
 
+
+
+# Profiles Applications
 # post new
 profile_cnter = 0
 post '/api/v1/profiles' do
@@ -101,6 +103,17 @@ get '/api/v1/profiles' do
   json(data)
 end
 
+put '/api/v1/profiles/:id' do
+  idnumber = params.delete("id")
+  json database[:profiles].update_one(
+    {'_id' => BSON::ObjectId(idnumber)}, {'$set' => params }
+  )
+end
+
+
+
+
+# Volunteer Applications
 #update 1
 
 
