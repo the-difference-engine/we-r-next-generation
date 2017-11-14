@@ -12,30 +12,18 @@ describe 'UsersProfileE2E' do
 
     it 'have a full_name property with the value of "Jon Doe"' do
       json[:full_name].must_equal 'Jon Doe'
-      # ... other fields e.g. address_1, zip, country, email, phone_number etc.
+      json[:address_1].must_equal ' 4 Matadi Street'
     end
 
   end
 
   describe 'POST /api/v1/users/:user_id/profile' do
     before do
-      post_json('/api/v1/users/1/profile', {
-          full_name: "Jon Doe",
-          address_1: " 4 Matadi Street",
-          address_2: " Plot 8c Metalbox   road, off Acme road",
-          town: "Ogba",
-          province: "Ikeja lagos",
-          zip: "20303",
-          country: "Nigeria",
-          email: "user@gmail.com",
-          phone_number: "555-555-5555",
-          password: "xxxxxx",
-          profile_img: "url_image"
-      })
+      post_json('/api/v1/users/3/profile', {:full_name => "Sam Doe"})
     end
 
     it 'responds successfully' do
-      last_response.status.must_equal 200
+      get_json('/api/v1/users/3/profile')[:full_name].must_equal "Sam Doe"
     end
 
   end
