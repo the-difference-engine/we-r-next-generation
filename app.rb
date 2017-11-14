@@ -146,31 +146,30 @@ end
 get '/api/v1/applications/camps' do
   data = []
   database[:camps].find.each do |document|
-
     data << document.to_h
   end
   json data
 end
 
 post '/api/v1/applications/camps' do
+  json database[:camps].insert_one(params)
+end
 
-  # database[:camps] << params
-  # data = {}
-  # data[:data] = database[:camps]
-  # old_database[:camps] << params
-  # old_database[:camps][-1][:camp_app_id] = camp_app_id
-  # camp_app_id += 1
-  # data = {}
-  # data[:data] = old_database[:camps]
-  # json database
+get '/api/v1/applications/camps/:_id' do
+
+  json database[:camps].find(:_id => BSON::ObjectId(params[:_id])).first
+
 end
 
 
-get '/api/v1/applications/camps/:_id' do
-  data = []
-  database[:camps].find(:_id => BSON::ObjectId(params[:_id])).each do |document|
-    data << document.to_h
-  end
-  json data
+
+
+
+
+
+put '/api/v1/applications/camps/:_id' do
+  # data = []
+  # data << database[:camps].find(:_id => BSON::ObjectId(params[:_id])).update_one(params)
+  # json data
 end
 
