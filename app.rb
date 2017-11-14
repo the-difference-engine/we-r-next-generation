@@ -74,8 +74,6 @@ old_database = {
   ]
 }
 
-# Volunteer Applications
-
 
 # get 1
 get '/api/v1/profile/:profile_id' do
@@ -138,8 +136,17 @@ end
 
 
 put '/api/v1/applications/volunteers/:id' do
-  database[:volunteers].find(:_id => BSON::ObjectId(params[:_id]))
+  idnumber = params.delete("id")
+  json database[:volunteers].update_one(
+    {'_id' => BSON::ObjectId(idnumber)}, {'$set' => params }
+    )
+  # json database[:volunteers].find(:_id => BSON::ObjectId(idnumber)).first
 end
+
+
+
+
+
 
 # Camp Applications
 
