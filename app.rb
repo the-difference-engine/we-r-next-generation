@@ -21,59 +21,6 @@ post '/api/v1/hello' do
   json(record)
 end
 
-vol_app_id = 1
-camp_app_id = 1
-
-old_database = {
-  profiles: [
-    {
-      "full_name": "Kyle Kuhn",
-      "email": "kisle.kuhn1@gmail.com",
-      "address": "215 Ohio Ave",
-      "phone_number": "111-222-3344",
-      "signature": "KK",
-      "camp_id": "1",
-      "status": "Active"
-
-    },
-    {
-      "full_name": "joe Kuhn",
-      "email": "kisle.kuhn1@gmail.com",
-      "address": "215 Ohio Ave",
-      "phone_number": "111-222-3344",
-      "signature": "KK",
-      "camp_id": "1",
-      "status": "Active",
-      "profile_id": 10
-
-    }
-  ],
-  volunteers: [
-    {
-      full_name: "Victor Lee",
-      email: "vlee@gmail.com",
-      address: "1 Chicago Ave",
-      phone_number: "312-345-6655",
-      bio: "Hey",
-      signature: "VL",
-      camp_id: "1",
-      status: "Active",
-      user_id: 1
-    },
-    {
-      full_name: "Victor Lee2",
-      email: "vlee@gmail.com",
-      address: "1 Chicago Ave",
-      phone_number: "312-345-6655",
-      bio: "Hey",
-      signature: "VL",
-      camp_id: "1",
-      status: "Active",
-      user_id: 1
-    }
-  ]
-}
-
 # Volunteer Applications
 
 # post new
