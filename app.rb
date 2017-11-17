@@ -21,82 +21,21 @@ post '/api/v1/hello' do
   json(record)
 end
 
-vol_app_id = 1
-camp_app_id = 1
-
-old_database = {
-  profiles: [
-    {
-      "full_name": "Kyle Kuhn",
-      "email": "kisle.kuhn1@gmail.com",
-      "address": "215 Ohio Ave",
-      "phone_number": "111-222-3344",
-      "signature": "KK",
-      "camp_id": "1",
-      "status": "Active"
-
-    },
-    {
-      "full_name": "joe Kuhn",
-      "email": "kisle.kuhn1@gmail.com",
-      "address": "215 Ohio Ave",
-      "phone_number": "111-222-3344",
-      "signature": "KK",
-      "camp_id": "1",
-      "status": "Active",
-      "profile_id": 10
-
-    }
-  ],
-  volunteers: [
-    {
-      full_name: "Victor Lee",
-      email: "vlee@gmail.com",
-      address: "1 Chicago Ave",
-      phone_number: "312-345-6655",
-      bio: "Hey",
-      signature: "VL",
-      camp_id: "1",
-      status: "Active",
-      user_id: 1
-    },
-    {
-      full_name: "Victor Lee2",
-      email: "vlee@gmail.com",
-      address: "1 Chicago Ave",
-      phone_number: "312-345-6655",
-      bio: "Hey",
-      signature: "VL",
-      camp_id: "1",
-      status: "Active",
-      user_id: 1
-    }
-  ]
-}
-
-
-# get 1
-get '/api/v1/profile/:profile_id' do
-  old_database[:profiles].each do |profile|
-    if profile[:profile_id] == params[:profile_id].to_i
-      return profile.to_json
-    end
-  end
-end
 
 
 
-# post new
-profile_cnter = 0
-post '/api/v1/profile/:profile_id' do
-  profile_cnter += 1
-  params[:profile_id] = profile_cnter
-  old_database[:profiles] << params
-  json old_database
+get '/api/v1/profiles/:profile_id' do
+  profile_id = params[:profile_id]
+  obj_id = BSON::ObjectId(profile_id)
+  profile_table = database[:profiles]
+  query_reults = profile_table.find(:_id => obj_id)
+  match = query_reults.first
+  json(match.to_h)
+
 end
 
 # get all
-get '/api/v1/profile' do
+get '/api/v1/profiles' do
     data=[]
     database[:profiles].find.each do |people|
       data << people.to_h
@@ -105,12 +44,6 @@ get '/api/v1/profile' do
 end
 
 #update 1
-
-# not working yet
-put '/api/v1/profile/:profile_id' do
-
-
-end
 
 
 get '/api/v1/applications/volunteers' do
@@ -153,31 +86,30 @@ end
 get '/api/v1/applications/camps' do
   data = []
   database[:camps].find.each do |document|
-
     data << document.to_h
   end
   json data
 end
 
 post '/api/v1/applications/camps' do
-
-  # database[:camps] << params
-  # data = {}
-  # data[:data] = database[:camps]
-  # old_database[:camps] << params
-  # old_database[:camps][-1][:camp_app_id] = camp_app_id
-  # camp_app_id += 1
-  # data = {}
-  # data[:data] = old_database[:camps]
-  # json database
+  json database[:camps].insert_one(params)
 end
-
 
 get '/api/v1/applications/camps/:_id' do
-  data = []
-  database[:camps].find(:_id => BSON::ObjectId(params[:_id])).each do |document|
-    data << document.to_h
-  end
-  json data
+
+  json database[:camps].find(:_id => BSON::ObjectId(params[:_id])).first
+
 end
 
+put '/api/v1/applications/camps/:_id' do
+id_number = params.delete("_id")
+
+json database[:camps].update_one( { '_id' => BSON::ObjectId(id_number) },   { '$set' => params})
+
+end
+
+delete '/api/v1/applications/camps/:_id' do
+
+ database[:camps].delete_one( {_id: BSON::ObjectId(params[:_id]) } )
+
+end
