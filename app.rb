@@ -21,13 +21,8 @@ post '/api/v1/hello' do
   json(record)
 end
 
-# Volunteer Applications
 
-# post new
-profile_cnter = 0
-post '/api/v1/profiles' do
-  json database[:profiles].insert_one(params)
-end
+
 
 get '/api/v1/profiles/:profile_id' do
   profile_id = params[:profile_id]
@@ -74,8 +69,17 @@ end
 
 
 put '/api/v1/applications/volunteers/:id' do
-  database[:volunteers].find(:_id => BSON::ObjectId(params[:_id]))
+  idnumber = params.delete("id")
+  json database[:volunteers].update_one(
+    {'_id' => BSON::ObjectId(idnumber)}, {'$set' => params }
+    )
+  # json database[:volunteers].find(:_id => BSON::ObjectId(idnumber)).first
 end
+
+
+
+
+
 
 # Camp Applications
 
