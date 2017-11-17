@@ -21,19 +21,7 @@ post '/api/v1/hello' do
   json(record)
 end
 
-vol_app_id = 1
-camp_app_id = 1
 
-old_database = {
-  profiles: [
-    {
-      "full_name": "Kyle Kuhn",
-      "email": "kisle.kuhn1@gmail.com",
-      "address": "215 Ohio Ave",
-      "phone_number": "111-222-3344",
-      "signature": "KK",
-      "camp_id": "1",
-      "status": "Active"
 
     },
     {
@@ -140,7 +128,11 @@ end
 
 
 put '/api/v1/applications/volunteers/:id' do
-  database[:volunteers].find(:_id => BSON::ObjectId(params[:_id]))
+  idnumber = params.delete("id")
+  json database[:volunteers].update_one(
+    {'_id' => BSON::ObjectId(idnumber)}, {'$set' => params }
+    )
+  # json database[:volunteers].find(:_id => BSON::ObjectId(idnumber)).first
 end
 
 # Camp Applications
@@ -175,3 +167,8 @@ put '/api/v1/applications/camps/:_id' do
   # json data
 end
 
+delete '/api/v1/applications/camps/:_id' do
+
+ database[:camps].delete_one( {_id: BSON::ObjectId(params[:_id]) } )
+
+end
