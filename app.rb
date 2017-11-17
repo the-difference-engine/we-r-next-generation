@@ -21,6 +21,7 @@ post '/api/v1/hello' do
   json(record)
 end
 
+# Volunteer Applications
 
 
     },
@@ -98,6 +99,12 @@ put '/api/v1/profiles/:id' do
   )
 end
 
+delete '/api/v1/profiles/:_id' do
+
+  database[:profiles].delete_one( {_id: BSON::ObjectId(params[:_id]) } )
+
+end
+
 
 
 
@@ -155,16 +162,11 @@ get '/api/v1/applications/camps/:_id' do
 
 end
 
-
-
-
-
-
-
 put '/api/v1/applications/camps/:_id' do
-  # data = []
-  # data << database[:camps].find(:_id => BSON::ObjectId(params[:_id])).update_one(params)
-  # json data
+id_number = params.delete("_id")
+
+json database[:camps].update_one( { '_id' => BSON::ObjectId(id_number) },   { '$set' => params})
+
 end
 
 delete '/api/v1/applications/camps/:_id' do
