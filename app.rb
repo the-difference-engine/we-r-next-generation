@@ -129,3 +129,15 @@ delete '/api/v1/applications/volunteers/:_id' do
   end
   json data
 end
+
+#sessions endpoints
+
+post '/api/v1/sessions' do
+  token = database[:sessions].insert_one(params)
+ json token.inserted_id
+
+end
+
+delete '/api/v1/sessions/:_id' do
+  database[:sessions].delete_one( {_id: BSON::ObjectId(params[:_id]) } )
+end
