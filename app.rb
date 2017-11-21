@@ -134,10 +134,11 @@ end
 
 post '/api/v1/sessions' do
   data = []
-  token = database[:sessions].insert_one(params)
-  data << token.inserted_id
   results = database[:profiles].find(:user_name => (params[:user_name])).first
+
   if results[:password] === (params[:password])
+    token = database[:sessions].insert_one(params)
+    data << token.inserted_id
     data << results
   else
     return "incorrect username or password"
