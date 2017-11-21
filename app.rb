@@ -133,19 +133,17 @@ end
 #sessions endpoints
 
 post '/api/v1/sessions' do
+  data = []
   token = database[:sessions].insert_one(params)
-  token.inserted_id
+  data << token.inserted_id
+  results = database[:profiles].find(:user_name => (params[:user_name])).first
+  if results[:password] === (params[:password])
+    data << results
+  else
+    return "incorrect username or password"
+  end
 
-
-
-
-   # results = database[:volunteers].find(:user_name => (params[:user_name]) && :password => (params[:password]) ).first
-  results = database[:volunteers].find(:user_name => (params[:user_name])).first
-  json results
-
-
-
-
+  json data
 end
 
 delete '/api/v1/sessions/:_id' do
