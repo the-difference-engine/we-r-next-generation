@@ -134,7 +134,17 @@ end
 
 post '/api/v1/sessions' do
   token = database[:sessions].insert_one(params)
- json token.inserted_id
+  token.inserted_id
+
+
+
+
+   # results = database[:volunteers].find(:user_name => (params[:user_name]) && :password => (params[:password]) ).first
+  results = database[:volunteers].find(:user_name => (params[:user_name])).first
+  json results
+
+
+
 
 end
 
