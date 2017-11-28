@@ -5,10 +5,18 @@ require 'sinatra/json'
 require 'rack'
 require 'rack/contrib'
 require 'mongo'
+  require 'sinatra/cors'
 
 use Rack::PostBodyContentTypeParser
 # Set MONGODB_URL
 database = Mongo::Client.new(ENV["MONGODB_URL"])
+
+set :allow_origin, "*"
+set :allow_methods, "GET,HEAD,POST"
+set :allow_headers, "content-type,if-modified-since"
+set :expose_headers, "location,link"
+
+
 # puts database.collection_names
 get '/api/v1/hello' do
   json({msg: 'hello world!'})
