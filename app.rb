@@ -4,6 +4,7 @@ require 'sinatra'
 require 'sinatra/json'
 require 'rack'
 require 'rack/contrib'
+require_relative 'validate'
 require 'mongo'
   require 'sinatra/cors'
 
@@ -23,6 +24,9 @@ get '/api/v1/hello' do
 end
 
 post '/api/v1/hello' do
+  if !checkParameters(params, ['name'])
+    halt 400
+  end
   name = params[:name]
   record = {msg: "hello #{name}!"}
   database[:bob].insert_one(record)
@@ -33,6 +37,9 @@ end
 # post new
 
 post '/api/v1/profiles' do
+  if !checkParameters(params, ['full_name','email','address','phone_number','signature','camp_id','status','bio','user_name','password'])
+    halt 400, "the requirements were not met, did not post to database"
+  end
   json database[:profiles].insert_one(params)
 end
 
@@ -57,6 +64,9 @@ end
 
 put '/api/v1/profiles/:id' do
   idnumber = params.delete("id")
+  if !checkParameters(params, ['full_name','email','address','phone_number','signature','camp_id','status','bio','user_name','password'])
+    halt 400, "the requirements were not met, did not post to database"
+  end
   json database[:profiles].update_one(
     {'_id' => BSON::ObjectId(idnumber)}, {'$set' => params }
   )
@@ -78,6 +88,9 @@ get '/api/v1/applications/camps' do
 end
 
 post '/api/v1/applications/camps' do
+  if !checkParameters(params, ['full_name','email','address','phone_number','signature','camp_id','status','bio'])
+    halt 400, "the requirements were not met, did not post to database"
+  end
   json database[:camps].insert_one(params)
 end
 
@@ -89,6 +102,9 @@ end
 
 put '/api/v1/applications/camps/:_id' do
   id_number = params.delete("_id")
+  if !checkParameters(params, ['full_name','email','address','phone_number','signature','camp_id','status','bio'])
+    halt 400, "the requirements were not met, did not post to database"
+  end
 
   json database[:camps].update_one( { '_id' => BSON::ObjectId(id_number) },   { '$set' => params})
 
@@ -117,12 +133,18 @@ end
 
 
 post '/api/v1/applications/volunteers' do
+  if !checkParameters(params, ['full_name','email','address','phone_number','signature','camp_id','status','bio','user_name','password'])
+    halt 400, "the requirements were not met, did not post to database"
+  end
   json database[:volunteers].insert_one(params)
 end
 
 
 put '/api/v1/applications/volunteers/:id' do
   idnumber = params.delete("id")
+  if !checkParameters(params, ['full_name','email','address','phone_number','signature','camp_id','status','bio','user_name','password'])
+    halt 400, "the requirements were not met, did not post to database"
+  end
   json database[:volunteers].update_one(
     {'_id' => BSON::ObjectId(idnumber)}, {'$set' => params }
     )
