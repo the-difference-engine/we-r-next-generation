@@ -1,6 +1,5 @@
 def checkParameters(parameters, required)
-  i = 0
-  for reqs in required
+  for reqs in required do
     if !parameters.include?(reqs)
       return false
     end

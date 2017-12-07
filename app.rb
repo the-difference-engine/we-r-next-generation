@@ -36,8 +36,9 @@ end
 # Profile endpoints
 # post new
 
+profileParams = ['full_name', 'email', 'address', 'phone_number', 'signature', 'camp_id', 'status', 'bio', 'user_name', 'password']
 post '/api/v1/profiles' do
-  if !checkParameters(params, ['full_name','email','address','phone_number','signature','camp_id','status','bio','user_name','password'])
+  if !checkParameters(params, profileParams)
     halt 400, "the requirements were not met, did not post to database"
   end
   json database[:profiles].insert_one(params)
@@ -64,7 +65,7 @@ end
 
 put '/api/v1/profiles/:id' do
   idnumber = params.delete("id")
-  if !checkParameters(params, ['full_name','email','address','phone_number','signature','camp_id','status','bio','user_name','password'])
+  if !checkParameters(params, profileParams)
     halt 400, "the requirements were not met, did not post to database"
   end
   json database[:profiles].update_one(
@@ -87,8 +88,10 @@ get '/api/v1/applications/camps' do
   json data
 end
 
+campParams = ['full_name', 'email', 'address', 'phone_number', 'signature', 'camp_id', 'status', 'bio']
+
 post '/api/v1/applications/camps' do
-  if !checkParameters(params, ['full_name','email','address','phone_number','signature','camp_id','status','bio'])
+  if !checkParameters(params, campParams)
     halt 400, "the requirements were not met, did not post to database"
   end
   json database[:camps].insert_one(params)
@@ -102,7 +105,7 @@ end
 
 put '/api/v1/applications/camps/:_id' do
   id_number = params.delete("_id")
-  if !checkParameters(params, ['full_name','email','address','phone_number','signature','camp_id','status','bio'])
+  if !checkParameters(params, campParams)
     halt 400, "the requirements were not met, did not post to database"
   end
 
@@ -133,7 +136,7 @@ end
 
 
 post '/api/v1/applications/volunteers' do
-  if !checkParameters(params, ['full_name','email','address','phone_number','signature','camp_id','status','bio','user_name','password'])
+  if !checkParameters(params, profileParams)
     halt 400, "the requirements were not met, did not post to database"
   end
   json database[:volunteers].insert_one(params)
@@ -142,7 +145,7 @@ end
 
 put '/api/v1/applications/volunteers/:id' do
   idnumber = params.delete("id")
-  if !checkParameters(params, ['full_name','email','address','phone_number','signature','camp_id','status','bio','user_name','password'])
+  if !checkParameters(params, profileParams)
     halt 400, "the requirements were not met, did not post to database"
   end
   json database[:volunteers].update_one(
