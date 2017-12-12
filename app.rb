@@ -19,7 +19,7 @@ set :expose_headers, "location,link"
 
 
 before '*' do
-  
+
   if request.path_info == '/api/v1/sessions' && request.request_method == "POST"
     next
 
@@ -225,3 +225,5 @@ get '/api/v1/sessions/:_id' do
   else
     json database[:sessions].find(:_id => BSON::ObjectId(params[:_id])).first
   end
+end
+
