@@ -169,17 +169,32 @@ post '/api/v1/sessions' do
   data = []
   results = database[:profiles].find(:user_name => (params[:user_name])).first
 
-  if results[:password] === (params[:password])
+  if !results
+    halt(401)
+  elsif results[:password] === (params[:password])
     token = database[:sessions].insert_one(params)
     data << token.inserted_id
     data << results
   else
-    return "incorrect username or password"
+    halt(401)
   end
-
   json data
 end
 
 delete '/api/v1/sessions/:_id' do
-  database[:sessions].delete_one( {_id: BSON::ObjectId(params[:_id]) } )
+
+  if (params[:_id]) != @token
+    halt(401, "Invalid Token")
+  else
+    database[:sessions].delete_one( {_id: BSON::ObjectId(params[:_id]) } )
+    return "deleted"
+  end
 end
+
+
+get '/api/v1/sessions/:_id' do
+  if (params[:_id]) != @token
+    halt(401, "Invalid Token")
+  else
+    json database[:sessions].find(:_id => BSON::ObjectId(params[:_id])).first
+  end
