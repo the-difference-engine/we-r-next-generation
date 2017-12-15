@@ -158,3 +158,14 @@ end
 delete '/api/v1/sessions/:_id' do
   database[:sessions].delete_one( {_id: BSON::ObjectId(params[:_id]) } )
 end
+
+# faq endpoints
+
+get '/api/v1/faq' do
+  data = []
+  database[:faqs].find.each do |faq|
+    data << faq.to_h
+  end
+  json data
+end
+
