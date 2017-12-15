@@ -205,7 +205,7 @@ post '/api/v1/sessions' do
   else
     halt(401)
   end
-  json data
+  json token.inserted_id
 end
 
 delete '/api/v1/sessions/:_id' do
