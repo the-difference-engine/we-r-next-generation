@@ -15,6 +15,5 @@
 end to end test are in the `spec/e2e/api/v1` directory while unit test are in the `spec/unit` directory  
 
 # Heroku 
-- url: https://wernextgeneration-api.herokuapp.com/
-- https://wernextgeneration.herokuapp.com/
+- url: https://wrng.herokuapp.com/
 
