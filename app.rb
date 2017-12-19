@@ -234,6 +234,5 @@ get '/api/v1/sessions/:_id' do
   else
     json database[:sessions].find(:_id => BSON::ObjectId(params[:_id])).first
   end
->>>>>>> 9c459fae78fd47cc882ec06e4ff8f25b591baa5f
 end
 
