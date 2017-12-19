@@ -219,7 +219,6 @@ delete '/api/v1/sessions/:_id' do
   end
 end
 
-<<<<<<< HEAD
 # faq endpoints
 
 get '/api/v1/faq' do
@@ -228,7 +227,6 @@ get '/api/v1/faq' do
     data << faq.to_h
   end
   json data
-=======
 
 get '/api/v1/sessions/:_id' do
   if (params[:_id]) != @token
