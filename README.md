@@ -17,17 +17,21 @@ end to end test are in the `spec/e2e/api/v1` directory while unit test are in th
 # Heroku 
 - url: https://wrng.herokuapp.com/
 
-update your heroku if needed
+Update your heroku if needed
+
 `brew install heroku`
 
-in your command line
 `heroku login`
-use the credentials found in WeRNextGeneration Google Drive to login
+
+Use the credentials found in WeRNextGeneration Google Drive to login
 
 `heroku git:remote -a wrng`
-run this command just once, for the first time, this sets git remote
+
+Run this command just once, for the first time, this sets git remote
 
 
-`git push heroku:master`
+`git push heroku qa:master`
+
+This deploys your code into Heroku
 
 
