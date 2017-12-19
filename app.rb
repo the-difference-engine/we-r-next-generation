@@ -4,17 +4,56 @@ require 'sinatra'
 require 'sinatra/json'
 require 'rack'
 require 'rack/contrib'
+require_relative 'validate'
 require 'mongo'
+  require 'sinatra/cors'
 
 use Rack::PostBodyContentTypeParser
 # Set MONGODB_URL
 database = Mongo::Client.new(ENV["MONGODB_URL"])
+
+set :allow_origin, "*"
+set :allow_methods, "GET,HEAD,POST"
+set :allow_headers, "content-type,if-modified-since"
+set :expose_headers, "location,link"
+
+
+before '*' do
+
+  if request.path_info == '/api/v1/sessions' && request.request_method == "POST"
+    next
+
+  else
+    collection = database[:sessions]
+    @token = request.env["HTTP_X_TOKEN"]
+
+    if !@token
+      halt(401, "Invalid Token")
+    elsif !BSON::ObjectId.legal?(@token)
+      halt(401, "Invalid Token")
+    else
+      session = collection.find( {:_id => BSON::ObjectId(@token) }).first
+      if session.nil?
+        halt(401, "Invalid Token")
+      else
+        @session = session
+      end
+    end
+  end
+end
+
+
+
+
 # puts database.collection_names
 get '/api/v1/hello' do
   json({msg: 'hello world!'})
 end
 
 post '/api/v1/hello' do
+  if !checkParameters(params, ['name'])
+    halt 400
+  end
   name = params[:name]
   record = {msg: "hello #{name}!"}
   database[:bob].insert_one(record)
@@ -24,7 +63,11 @@ end
 # Profile endpoints
 # post new
 
+profileParams = ['full_name', 'email', 'address', 'phone_number', 'signature', 'camp_id', 'status', 'bio', 'user_name', 'password']
 post '/api/v1/profiles' do
+  if !checkParameters(params, profileParams)
+    halt 400, "the requirements were not met, did not post to database"
+  end
   json database[:profiles].insert_one(params)
 end
 
@@ -49,6 +92,9 @@ end
 
 put '/api/v1/profiles/:id' do
   idnumber = params.delete("id")
+  if !checkParameters(params, profileParams)
+    halt 400, "the requirements were not met, did not post to database"
+  end
   json database[:profiles].update_one(
     {'_id' => BSON::ObjectId(idnumber)}, {'$set' => params }
   )
@@ -69,7 +115,12 @@ get '/api/v1/applications/camps' do
   json data
 end
 
+campParams = ['full_name', 'email', 'address', 'phone_number', 'signature', 'camp_id', 'status', 'bio']
+
 post '/api/v1/applications/camps' do
+  if !checkParameters(params, campParams)
+    halt 400, "the requirements were not met, did not post to database"
+  end
   json database[:camps].insert_one(params)
 end
 
@@ -81,6 +132,9 @@ end
 
 put '/api/v1/applications/camps/:_id' do
   id_number = params.delete("_id")
+  if !checkParameters(params, campParams)
+    halt 400, "the requirements were not met, did not post to database"
+  end
 
   json database[:camps].update_one( { '_id' => BSON::ObjectId(id_number) },   { '$set' => params})
 
@@ -109,12 +163,18 @@ end
 
 
 post '/api/v1/applications/volunteers' do
+  if !checkParameters(params, profileParams)
+    halt 400, "the requirements were not met, did not post to database"
+  end
   json database[:volunteers].insert_one(params)
 end
 
 
 put '/api/v1/applications/volunteers/:id' do
   idnumber = params.delete("id")
+  if !checkParameters(params, profileParams)
+    halt 400, "the requirements were not met, did not post to database"
+  end
   json database[:volunteers].update_one(
     {'_id' => BSON::ObjectId(idnumber)}, {'$set' => params }
     )
@@ -136,17 +196,46 @@ post '/api/v1/sessions' do
   data = []
   results = database[:profiles].find(:user_name => (params[:user_name])).first
 
-  if results[:password] === (params[:password])
+  if !results
+    halt(401)
+  elsif results[:password] === (params[:password])
     token = database[:sessions].insert_one(params)
     data << token.inserted_id
     data << results
   else
-    return "incorrect username or password"
+    halt(401)
   end
 
-  json data
+ return {"X_TOKEN"=> token.inserted_id.to_s}.to_json
 end
 
 delete '/api/v1/sessions/:_id' do
-  database[:sessions].delete_one( {_id: BSON::ObjectId(params[:_id]) } )
+
+  if (params[:_id]) != @token
+    halt(401, "Invalid Token")
+  else
+    database[:sessions].delete_one( {_id: BSON::ObjectId(params[:_id]) } )
+    return "deleted"
+  end
 end
+
+<<<<<<< HEAD
+# faq endpoints
+
+get '/api/v1/faq' do
+  data = []
+  database[:faqs].find.each do |faq|
+    data << faq.to_h
+  end
+  json data
+=======
+
+get '/api/v1/sessions/:_id' do
+  if (params[:_id]) != @token
+    halt(401, "Invalid Token")
+  else
+    json database[:sessions].find(:_id => BSON::ObjectId(params[:_id])).first
+  end
+>>>>>>> 9c459fae78fd47cc882ec06e4ff8f25b591baa5f
+end
+

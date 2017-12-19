@@ -12,6 +12,7 @@ gem 'sinatra-contrib'
 gem 'multi_json'
 gem 'mongo'
 gem 'bson'
+gem 'sinatra-cors'
 
 # for tests
 group :test do
