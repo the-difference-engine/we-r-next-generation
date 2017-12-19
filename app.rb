@@ -227,6 +227,7 @@ get '/api/v1/faq' do
     data << faq.to_h
   end
   json data
+end
 
 get '/api/v1/sessions/:_id' do
   if (params[:_id]) != @token
