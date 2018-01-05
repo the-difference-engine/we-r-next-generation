@@ -48,7 +48,7 @@ end
 
 # puts database.collection_names
 get '/api/v1/hello' do
-  json({msg: 'hello world!'})
+  json({msg: 'hello world! im working'})
 end
 
 post '/api/v1/hello' do
