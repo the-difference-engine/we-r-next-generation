@@ -18,29 +18,29 @@ set :allow_headers, "content-type,if-modified-since"
 set :expose_headers, "location,link"
 
 
-# before '*' do
-#
-#   if request.path_info == '/api/v1/sessions' && request.request_method == "POST"
-#     next
-#
-#   else
-#     collection = database[:sessions]
-#     @token = request.env["HTTP_X_TOKEN"]
-#
-#     if !@token
-#       halt(401, "Invalid Broken")
-#     elsif !BSON::ObjectId.legal?(@token)
-#       halt(401, "Invalid Token")
-#     else
-#       session = collection.find( {:_id => BSON::ObjectId(@token) }).first
-#       if session.nil?
-#         halt(401, "Invalid Token")
-#       else
-#         @session = session
-#       end
-#     end
-#   end
-# end
+before '*' do
+
+  if request.path_info == '/api/v1/sessions' && request.request_method == "POST"
+    next
+
+  else
+    collection = database[:sessions]
+    @token = request.env["HTTP_X_TOKEN"]
+
+    if !@token
+      halt(401, "Invalid Broken")
+    elsif !BSON::ObjectId.legal?(@token)
+      halt(401, "Invalid Token")
+    else
+      session = collection.find( {:_id => BSON::ObjectId(@token) }).first
+      if session.nil?
+        halt(401, "Invalid Token")
+      else
+        @session = session
+      end
+    end
+  end
+end
 
 
 
