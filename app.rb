@@ -28,7 +28,7 @@ before '*' do
     @token = request.env["HTTP_X_TOKEN"]
 
     if !@token
-      halt(401, "Invalid Broken")
+      halt(401, "Invalid Token")
     elsif !BSON::ObjectId.legal?(@token)
       halt(401, "Invalid Token")
     else
