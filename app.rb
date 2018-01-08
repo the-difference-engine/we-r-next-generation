@@ -220,6 +220,18 @@ delete '/api/v1/sessions/:_id' do
   end
 end
 
+# webpage resources
+
+get '/api/v1/resources/:pagename' do
+  result = database[:pageresources].find(:name => params[:pagename])
+
+  if result.count.zero?
+    json 0
+  else
+    json result.first['dataObj']
+  end
+end
+
 # faq endpoints
 
 get '/api/v1/faq' do
