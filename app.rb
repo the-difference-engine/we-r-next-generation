@@ -48,9 +48,10 @@ end
 
 
 
+
 # puts database.collection_names
 get '/api/v1/hello' do
-  json({msg: 'hello world!'})
+  json({msg: 'hello world! im working'})
 end
 
 post '/api/v1/hello' do
@@ -222,7 +223,6 @@ delete '/api/v1/sessions/:_id' do
   end
 end
 
-
 get '/api/v1/sessions/:_id' do
   if (params[:_id]) != @token
     halt(401, "Invalid Token")
@@ -232,3 +232,24 @@ get '/api/v1/sessions/:_id' do
   end
 end
 
+# webpage resources
+
+get '/api/v1/resources/:pagename' do
+  result = database[:pageresources].find(:name => params[:pagename])
+
+  if result.count.zero?
+    json 0
+  else
+    json result.first['dataObj']
+  end
+end
+
+# faq endpoints
+
+get '/api/v1/faq' do
+  data = []
+  database[:faqs].find.each do |faq|
+    data << faq.to_h
+  end
+  json data
+end
