@@ -17,15 +17,13 @@ set :allow_methods, "GET,HEAD,POST,DELETE"
 set :allow_headers, "content-type,if-modified-since, x-token"
 set :expose_headers, "location,link"
 
-
+whitelist = ['resources', 'faq']
 before '*' do
 
   if (request.path_info.include? '/api/v1/sessions') && (request.request_method == "POST")
     next
-
-  elsif (request.path_info.include? '/api/v1/resources') && (request.request_method == "GET")
-    next
-  elsif (request.path_info.include? '/api/v1/faq') && (request.request_method == "GET")
+    
+  elsif (whitelist.any? { |value| request.path_info.include? '/api/v1/' + value}) && (request.request_method == "GET")
     next
 
   elsif request.request_method == "OPTIONS"
