@@ -6,26 +6,29 @@ require 'rack'
 require 'rack/contrib'
 require_relative 'validate'
 require 'mongo'
-  require 'sinatra/cors'
+require 'sinatra/cors'
 
 use Rack::PostBodyContentTypeParser
 # Set MONGODB_URL
 database = Mongo::Client.new(ENV["MONGODB_URL"])
 
 set :allow_origin, "*"
-set :allow_methods, "GET,HEAD,POST"
-set :allow_headers, "content-type,if-modified-since"
+set :allow_methods, "GET,HEAD,POST,DELETE"
+set :allow_headers, "content-type,if-modified-since, x-token"
 set :expose_headers, "location,link"
 
 
 before '*' do
 
-  if request.path_info == '/api/v1/sessions' && request.request_method == "POST"
+  if (request.path_info.include? '/api/v1/sessions') && (request.request_method == "POST")
+    next
+
+  elsif request.request_method == "OPTIONS"
     next
 
   else
     collection = database[:sessions]
-    @token = request.env["HTTP_X_TOKEN"]
+    @token = request.env['HTTP_X_TOKEN']
 
     if !@token
       halt(401, "Invalid Token")
@@ -192,7 +195,7 @@ end
 
 #sessions endpoints
 
-post '/api/v1/sessions' do
+post '/api/v1/sessions/:user_name/:password' do
   data = []
   results = database[:profiles].find(:user_name => (params[:user_name])).first
 
@@ -206,7 +209,7 @@ post '/api/v1/sessions' do
     halt(401)
   end
 
- return {"X_TOKEN"=> token.inserted_id.to_s}.to_json
+ return {"X_TOKEN"=> token.inserted_id.to_s, "profileData" => results}.to_json
 end
 
 delete '/api/v1/sessions/:_id' do
@@ -224,7 +227,8 @@ get '/api/v1/sessions/:_id' do
   if (params[:_id]) != @token
     halt(401, "Invalid Token")
   else
-    json database[:sessions].find(:_id => BSON::ObjectId(params[:_id])).first
+    checkedSession = database[:sessions].find(:_id => BSON::ObjectId(params[:_id])).first
+    return {"X_TOKEN" => checkedSession[:_id].to_s}.to_json
   end
 end
 
