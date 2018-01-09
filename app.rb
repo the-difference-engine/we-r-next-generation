@@ -23,7 +23,7 @@ before '*' do
   if (request.path_info.include? '/api/v1/sessions') && (request.request_method == "POST")
     next
 
-  elsif (request.path_info.include? '/api/v1/homepage') && (request.request_method == "GET")
+  elsif (request.path_info.include? '/api/v1/resources') && (request.request_method == "GET")
     next
 
   elsif request.request_method == "OPTIONS"
