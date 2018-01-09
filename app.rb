@@ -25,6 +25,8 @@ before '*' do
 
   elsif (request.path_info.include? '/api/v1/resources') && (request.request_method == "GET")
     next
+  elsif (request.path_info.include? '/api/v1/faq') && (request.request_method == "GET")
+    next
 
   elsif request.request_method == "OPTIONS"
     next
