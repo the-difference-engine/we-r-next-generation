@@ -17,12 +17,12 @@ set :allow_methods, "GET,HEAD,POST,DELETE"
 set :allow_headers, "content-type,if-modified-since, x-token"
 set :expose_headers, "location,link"
 
-whitelist = ['resources', 'faq']
+whitelist = ['resources', 'faq', 'campinfo']
 before '*' do
 
   if (request.path_info.include? '/api/v1/sessions') && (request.request_method == "POST")
     next
-    
+
   elsif (whitelist.any? { |value| request.path_info.include? '/api/v1/' + value}) && (request.request_method == "GET")
     next
 
@@ -253,6 +253,16 @@ get '/api/v1/faq' do
   data = []
   database[:faqs].find.each do |faq|
     data << faq.to_h
+  end
+  json data
+end
+
+# camp info endpoints
+
+get '/api/v1/campinfo' do
+  data = []
+  database[:campinfo].find.each do |info|
+    data << info.to_h
   end
   json data
 end
