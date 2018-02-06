@@ -5,6 +5,7 @@ require 'sinatra/json'
 require 'rack'
 require 'rack/contrib'
 require_relative 'validate'
+require_relative 'emailUtils'
 require 'mongo'
 require 'sinatra/cors'
 
@@ -17,13 +18,14 @@ set :allow_methods, "GET,HEAD,POST,DELETE"
 set :allow_headers, "content-type,if-modified-since, x-token"
 set :expose_headers, "location,link"
 
-whitelist = ['resources', 'faq', 'campinfo']
+postWhitelist = ['sessions', 'profiles']
+getWhitelist = ['resources', 'faq', 'campinfo']
 before '*' do
 
-  if (request.path_info.include? '/api/v1/sessions') && (request.request_method == "POST")
+  if (postWhitelist.any? { |value| request.path_info.include? '/api/v1/' + value}) && (request.request_method == "POST")
     next
 
-  elsif (whitelist.any? { |value| request.path_info.include? '/api/v1/' + value}) && (request.request_method == "GET")
+  elsif (getWhitelist.any? { |value| request.path_info.include? '/api/v1/' + value}) && (request.request_method == "GET")
     next
 
   elsif request.request_method == "OPTIONS"
@@ -71,11 +73,16 @@ end
 # post new
 
 profileParams = ['full_name', 'email', 'address', 'phone_number', 'signature', 'camp_id', 'status', 'bio', 'user_name', 'password']
+signupParams = ['name', 'email', 'password', 'role']
+
+
 post '/api/v1/profiles' do
-  if !checkParameters(params, profileParams)
+  if !checkParameters(@params, signupParams)
     halt 400, "the requirements were not met, did not post to database"
+  else
+    sendEmail('spyeadon@gmail.com', 'no-reply@fakedomain.io', 'test of sign-up confirmation', 'plain text test')
   end
-  json database[:profiles].insert_one(params)
+  # json database[:profiles].insert_one(params)
 end
 
 get '/api/v1/profiles/:profile_id' do

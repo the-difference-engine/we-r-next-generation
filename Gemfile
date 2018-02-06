@@ -13,6 +13,7 @@ gem 'multi_json'
 gem 'mongo'
 gem 'bson'
 gem 'sinatra-cors'
+gem 'aws-sdk'
 
 # for tests
 group :test do
