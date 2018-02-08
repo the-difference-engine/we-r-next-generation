@@ -7,7 +7,7 @@ def sendEmail(to, reply, subject, text, html = false)
   body = {}
 
   if html
-    body['html'] = {data: html}
+    body['html'] = {data: text}
   else
     body['text'] = {data: text}
   end
@@ -23,5 +23,4 @@ def sendEmail(to, reply, subject, text, html = false)
     source: 'sender@tde-wrng-dev.samdotcomwasntavailable.com',
     reply_to_addresses: [reply]
   })
-
 end

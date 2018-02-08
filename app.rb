@@ -18,7 +18,7 @@ set :allow_methods, "GET,HEAD,POST,DELETE"
 set :allow_headers, "content-type,if-modified-since, x-token"
 set :expose_headers, "location,link"
 
-postWhitelist = ['sessions', 'profiles']
+postWhitelist = ['sessions', 'profiles', 'faq']
 getWhitelist = ['resources', 'faq', 'campinfo']
 before '*' do
 
@@ -263,6 +263,20 @@ get '/api/v1/faq' do
   end
   json data
 end
+
+newQuestionParams = ['name', 'email', 'message']
+
+post '/api/v1/faq' do
+  if !checkParameters(@params, newQuestionParams)
+    halt 400, "the requirements were not met, did not post question to WRNG staff"
+  else
+    message = @params['message'] + " - Question Submitted By: " + @params['name']
+    email = @params['email']
+    # CHANGE this e-mail address to Adebo@wearenextgeneration.org for deployment
+    sendEmail('alyssa@nickow.com', email, 'FAQ Submission', message)
+  end
+end
+
 
 # camp info endpoints
 
