@@ -77,12 +77,15 @@ signupParams = ['name', 'email', 'password', 'role']
 
 
 post '/api/v1/profiles' do
-  if !checkParameters(@params, signupParams)
+  if !checkParameters(params['params'], signupParams)
     halt 400, "the requirements were not met, did not post to database"
   else
     sendEmail('spyeadon@gmail.com', 'no-reply@fakedomain.io', 'test of sign-up confirmation', 'plain text test')
+    newProfile = params['params']
+    newProfile[:user_name] = newProfile.delete :name
+    newProfile['active'] = false
+    json database[:profiles].insert_one(newProfile)
   end
-  # json database[:profiles].insert_one(params)
 end
 
 get '/api/v1/profiles/:profile_id' do
@@ -191,7 +194,7 @@ put '/api/v1/applications/volunteers/:id' do
   end
   json database[:volunteers].update_one(
     {'_id' => BSON::ObjectId(idnumber)}, {'$set' => params }
-    )
+  )
 end
 
 
@@ -220,7 +223,7 @@ post '/api/v1/sessions/:user_name/:password' do
     halt(401)
   end
 
- return {"X_TOKEN"=> token.inserted_id.to_s, "profileData" => results}.to_json
+  return {"X_TOKEN"=> token.inserted_id.to_s, "profileData" => results}.to_json
 end
 
 delete '/api/v1/sessions/:_id' do
