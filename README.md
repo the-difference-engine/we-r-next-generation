@@ -2,11 +2,17 @@
 
 # Getting Started
 
-1. `clone https://github.com/the-difference-engine/we-r-next-generation.git`
-2. `cd we-r-next-generation`
-3. `bundle install`
-4. `curl -X GET http://localhost:4567/api/v1/hello` which should return `{"msg":"hello world!"}`
-5. `curl -H "Content-Type: application/json" -X POST -d '{"name":"john"}' http://localhost:4567/api/v1/hello` which should return `{"msg":"hello john!"}`
+1. Download code repository:
+`git clone https://github.com/the-difference-engine/we-r-next-generation.git`
+2. Navigate to project directory:
+`cd we-r-next-generation`
+3. Install dependencies:
+`bundle install`
+4. Confirm application handles requests:
+	* GET request:
+	`curl -X GET http://localhost:4567/api/v1/hello` which should return `{"msg":"hello world!"}`
+	* POST request:
+	`curl -H "Content-Type: application/json" -X POST -d '{"name":"john"}' http://localhost:4567/api/v1/hello` which should return `{"msg":"hello john!"}`
 
 # Tests
 
@@ -33,5 +39,3 @@ Run this command just once, for the first time, this sets git remote
 `git push heroku qa:master`
 
 This deploys your code into Heroku
-
-
