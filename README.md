@@ -3,7 +3,7 @@
 # Getting Started
 
 1. Download code repository:
-`git clone https://github.com/the-difference-engine/we-r-next-generation.git`
+`git clone git@github.com:the-difference-engine/we-r-next-generation.git`
 2. Navigate to project directory:
 `cd we-r-next-generation`
 3. Install dependencies:
