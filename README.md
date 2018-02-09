@@ -16,9 +16,14 @@
 
 # Tests
 
-1. `rake spec`
+* Run all tests:
+`rake spec`
+* Run end-to-end tests:
+`rake spec:e2e`
+* Run unit tests:
+`rake spec:units`
 
-end to end test are in the `spec/e2e/api/v1` directory while unit test are in the `spec/unit` directory  
+Note: End-to-end test are in the `spec/e2e/api/v1` directory while unit test are in the `spec/unit` directory.
 
 # Heroku 
 - url: https://wrng.herokuapp.com/
