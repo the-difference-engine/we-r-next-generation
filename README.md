@@ -1,6 +1,9 @@
-# we-r-next-generation
+we-r-next-generation
+=====
 
-# Getting Started
+## Getting Started
+
+Before you begin, you must have [Ruby](https://www.ruby-lang.org/en/documentation/installation/), [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git), and [Heroku](https://devcenter.heroku.com/articles/heroku-cli) installed.
 
 1. Download code repository:
 `git clone git@github.com:the-difference-engine/we-r-next-generation.git`
@@ -14,7 +17,7 @@
 	* POST request:
 	`curl -H "Content-Type: application/json" -X POST -d '{"name":"john"}' http://localhost:4567/api/v1/hello` which should return `{"msg":"hello john!"}`
 
-# Tests
+## Testing
 
 * Run all tests:
 `rake spec`
@@ -25,22 +28,17 @@
 
 Note: End-to-end test are in the `spec/e2e/api/v1` directory while unit test are in the `spec/unit` directory.
 
-# Heroku 
-- url: https://wrng.herokuapp.com/
+## Deploying
 
-Update your heroku if needed
+Production url: https://wrng.herokuapp.com/
 
-`brew install heroku`
+Tip: Make sure Heroku is up-to-date (see https://devcenter.heroku.com/articles/heroku-cli for your platform details).
 
+Use the credentials found in WeRNextGeneration Google Drive to login:
 `heroku login`
 
-Use the credentials found in WeRNextGeneration Google Drive to login
-
+The first time you run Heroku, set git remote:
 `heroku git:remote -a wrng`
 
-Run this command just once, for the first time, this sets git remote
-
-
+Deploy your code to Heroku:
 `git push heroku qa:master`
-
-This deploys your code into Heroku
