@@ -12,7 +12,7 @@ def sendEmail(to, reply, subject, text, html = false)
     body['text'] = {data: text}
   end
 
-  ses.send_email({
+  a = ses.send_email({
     destination: {
       to_addresses: [to]
     },
@@ -23,4 +23,7 @@ def sendEmail(to, reply, subject, text, html = false)
     source: 'sender@tde-wrng-dev.samdotcomwasntavailable.com',
     reply_to_addresses: [reply]
   })
+
+  a.data.message_id
+
 end
