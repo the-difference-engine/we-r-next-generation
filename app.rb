@@ -272,8 +272,7 @@ post '/api/v1/faq' do
   else
     message = @params['message'] + " - Question Submitted By: " + @params['name']
     email = @params['email']
-    # CHANGE this e-mail address to Adebo@wearenextgeneration.org for deployment
-    sendEmail('alyssa@nickow.com', email, 'FAQ Submission', message)
+    sendEmail(ENV['faq_email'], email, 'FAQ Submission', message)
   end
 end
 
