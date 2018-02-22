@@ -18,7 +18,7 @@ set :allow_methods, "GET,HEAD,POST,DELETE"
 set :allow_headers, "content-type,if-modified-since, x-token"
 set :expose_headers, "location,link"
 
-postWhitelist = ['sessions', 'profiles', 'faq']
+postWhitelist = ['sessions', 'faq']
 getWhitelist = ['resources', 'faq', 'campinfo']
 before '*' do
 
@@ -239,6 +239,7 @@ get '/api/v1/sessions/:_id' do
   else
     checkedSession = database[:sessions].find(:_id => BSON::ObjectId(params[:_id])).first
     return {"X_TOKEN" => checkedSession[:_id].to_s}.to_json
+
   end
 end
 
@@ -286,3 +287,16 @@ get '/api/v1/campinfo' do
   end
   json data
 end
+
+# profile page endpoints
+
+get '/api/v1/profile/:_id' do
+  if (params[:_id]) != @token
+    halt(401, "Invalid Token")
+  else
+    checkedSession = database[:sessions].find(:_id => BSON::ObjectId(params[:_id])).first
+    user = database[:profiles].find(:user_name == checkedSession[:user_name]).first
+    return user
+  end
+end
+
