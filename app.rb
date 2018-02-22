@@ -296,7 +296,7 @@ get '/api/v1/profile/:_id' do
   else
     checkedSession = database[:sessions].find(:_id => BSON::ObjectId(params[:_id])).first
     user = database[:profiles].find(:user_name == checkedSession[:user_name]).first
-    return user
+    json user
   end
 end
 
