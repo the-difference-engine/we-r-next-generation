@@ -14,18 +14,22 @@ use Rack::PostBodyContentTypeParser
 database = Mongo::Client.new(ENV["MONGODB_URL"])
 
 set :allow_origin, "*"
-set :allow_methods, "GET,HEAD,POST,DELETE"
+set :allow_methods, "GET,HEAD,POST,DELETE,PUT"
 set :allow_headers, "content-type,if-modified-since, x-token"
 set :expose_headers, "location,link"
 
 postWhitelist = ['sessions', 'profiles', 'faq']
 getWhitelist = ['resources', 'faq', 'campinfo']
+putWhiteList = ['profiles/activate']
 before '*' do
 
   if (postWhitelist.any? { |value| request.path_info.include? '/api/v1/' + value}) && (request.request_method == "POST")
     next
 
   elsif (getWhitelist.any? { |value| request.path_info.include? '/api/v1/' + value}) && (request.request_method == "GET")
+    next
+
+  elsif (putWhiteList.any? { |value| request.path_info.include? '/api/v1/' + value}) && (request.request_method == "PUT")
     next
 
   elsif request.request_method == "OPTIONS"
@@ -73,18 +77,25 @@ end
 # post new
 
 profileParams = ['full_name', 'email', 'address', 'phone_number', 'signature', 'camp_id', 'status', 'bio', 'user_name', 'password']
-signupParams = ['name', 'email', 'password', 'role']
+signupParams = ['name', 'email', 'password']
 
 
 post '/api/v1/profiles' do
   if !checkParameters(params['params'], signupParams)
     halt 400, "the requirements were not met, did not post to database"
   else
-    sendEmail('spyeadon@gmail.com', 'no-reply@fakedomain.io', 'test of sign-up confirmation', 'plain text test')
     newProfile = params['params']
-    newProfile[:user_name] = newProfile.delete :name
+    newProfile[:full_name] = newProfile.delete :name
     newProfile['active'] = false
-    json database[:profiles].insert_one(newProfile)
+    profInDB = database[:profiles].insert_one(newProfile)
+    url = 'http://localhost:8080/#/confirmation/' + profInDB.inserted_id.to_s
+    sendEmail(newProfile['email'],
+              'no-reply@fakedomain.io',
+              'WeRNextGeneration - Sign Up Confirmation',
+              'dummy plain text',
+              "Follow the link below to activate your account: <br><br> <a href=\"#{url}\">Activate Account</a>"
+    )
+    json 200
   end
 end
 
@@ -105,6 +116,21 @@ get '/api/v1/profiles' do
     data << people.to_h
   end
   json(data)
+end
+
+put '/api/v1/profiles/activate/:_id' do
+
+  if params[:_id] && database[:profiles].find(:_id => BSON::ObjectId(params[:_id])).first
+    profile = database[:profiles].find(:_id => BSON::ObjectId(params[:_id])).first
+    if !profile['active']
+      json database[:profiles].update_one({:_id =>BSON::ObjectId(params[:_id])}, {'$set' => {active: true}})
+    else
+      halt 200, "profile has already been activated"
+    end
+  else
+    halt 400, "profile ID invalid, could not activate account"
+  end
+
 end
 
 put '/api/v1/profiles/:id' do

@@ -7,7 +7,7 @@ def sendEmail(to, reply, subject, text, html = false)
   body = {}
 
   if html
-    body['html'] = {data: text}
+    body['html'] = {data: html}
   else
     body['text'] = {data: text}
   end
