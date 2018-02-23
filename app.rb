@@ -18,7 +18,7 @@ set :allow_methods, "GET,HEAD,POST,DELETE,PUT"
 set :allow_headers, "content-type,if-modified-since, x-token"
 set :expose_headers, "location,link"
 
-postWhitelist = ['sessions', 'faq']
+postWhitelist = ['sessions', 'faq', 'profiles']
 getWhitelist = ['resources', 'faq', 'campinfo']
 putWhiteList = ['profiles/activate']
 before '*' do
@@ -235,9 +235,9 @@ end
 
 #sessions endpoints
 
-post '/api/v1/sessions/:user_name/:password' do
+post '/api/v1/sessions/:email/:password' do
   data = []
-  results = database[:profiles].find(:user_name => (params[:user_name])).first
+  results = database[:profiles].find(:email => (params[:email])).first
 
   if !results
     halt(401)
