@@ -81,7 +81,7 @@ signupParams = ['name', 'email', 'password']
 
 
 post '/api/v1/profiles' do
-  if !checkParameters(params['params'], signupParams)
+  if !checkSignupParameters(params['params'], signupParams)
     halt 400, "the requirements were not met, did not post to database"
   else
     newProfile = params['params']
@@ -241,7 +241,7 @@ post '/api/v1/sessions/:email/:password' do
 
   if !results
     halt(401)
-  elsif results[:password] === (params[:password])
+  elsif (results[:password] === (params[:password]) && results[:active] === true)
     token = database[:sessions].insert_one(params)
     data << token.inserted_id
     data << results
