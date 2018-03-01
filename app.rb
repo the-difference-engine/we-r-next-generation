@@ -19,7 +19,7 @@ set :allow_headers, "content-type,if-modified-since, x-token"
 set :expose_headers, "location,link"
 
 postWhitelist = ['sessions', 'faq', 'profiles']
-getWhitelist = ['resources', 'faq', 'campinfo']
+getWhitelist = ['resources', 'faq', 'campinfo', 'opportunities']
 putWhiteList = ['profiles/activate']
 before '*' do
 
@@ -327,5 +327,15 @@ get '/api/v1/profile/:_id' do
     user = database[:profiles].find(:user_name == checkedSession[:user_name]).first
     json user
   end
+end
+
+# opportunities endpoints
+
+get '/api/v1/opportunities' do
+  data = []
+  database[:opportunities].find.each do |info|
+    data << info.to_h
+  end
+  json data
 end
 
