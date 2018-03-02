@@ -81,10 +81,12 @@ signupParams = ['name', 'email', 'password']
 
 
 post '/api/v1/profiles' do
-  if !checkSignupParameters(params['params'], signupParams)
+  newProfile = params['params']
+  if !checkSignupParameters(newProfile, signupParams)
     halt 400, "the requirements were not met, did not post to database"
+  elsif database[:profiles].find(:email => newProfile['email']).first
+    halt 400, "a profile with this email address already exists"
   else
-    newProfile = params['params']
     newProfile[:full_name] = newProfile.delete :name
     newProfile['active'] = false
     profInDB = database[:profiles].insert_one(newProfile)
