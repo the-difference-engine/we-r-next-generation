@@ -14,6 +14,7 @@ gem 'mongo'
 gem 'bson'
 gem 'sinatra-cors'
 gem 'aws-sdk'
+gem 'digest'
 
 # for tests
 group :test do
