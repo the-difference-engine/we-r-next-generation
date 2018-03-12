@@ -21,7 +21,7 @@ set :expose_headers, "location,link"
 
 postWhitelist = ['sessions', 'faq', 'profiles']
 getWhitelist = ['resources', 'faq', 'campinfo', 'opportunities']
-putWhiteList = ['profiles/activate', 'profiles/resetPassword']
+putWhiteList = ['profiles/activate', 'profiles/resetPassword', 'profiles/newPassword']
 before '*' do
 
   if (postWhitelist.any? { |value| request.path_info.include? '/api/v1/' + value}) && (request.request_method == "POST")
@@ -140,18 +140,29 @@ put '/api/v1/profiles/resetPassword/:email' do
   email = params[:email]
   profile = database[:profiles].find(:email => email).first
   if !profile || !profile[:active]
-    halt 400, "there is no profile with that email"
+    halt 400, "there is no active profile with that email"
   end
   md5 = Digest::MD5.new
   md5.update (email + DateTime.now().to_s)
   database[:profiles].update_one({:email => email}, {'$set' => {resetToken: md5.hexdigest}})
   url = 'http://localhost:8080/#/newPassword/' + md5.hexdigest
-  sendEmail(email, 'no-reply@fakedomain.io',
+  sendEmail(email,
+            'no-reply@fakedomain.io',
             'WeRNextGeneration - Password Reset',
             'dummy plain text',
             "Follow the link below to reset your password: <br><br> <a href=\"#{url}\">Activate Account</a>"
   )
   json 200
+end
+
+put '/api/v1/profiles/newPassword/:resetToken/:password' do
+  profile = database[:profiles].find(:resetToken => params[:resetToken]).first
+  if profile && profile[:active]
+  database[:profiles].update_one({:resetToken => params[:resetToken]}, {'$set' => {password: params[:password], resetToken: ''}})
+  json 200
+  else
+    halt 400, "no profile found with that reset token"
+  end
 end
 
 put '/api/v1/profiles/:id' do
