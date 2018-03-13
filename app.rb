@@ -8,24 +8,29 @@ require_relative 'validate'
 require_relative 'emailUtils'
 require 'mongo'
 require 'sinatra/cors'
+require 'digest'
 
 use Rack::PostBodyContentTypeParser
 # Set MONGODB_URL
 database = Mongo::Client.new(ENV["MONGODB_URL"])
 
 set :allow_origin, "*"
-set :allow_methods, "GET,HEAD,POST,DELETE"
+set :allow_methods, "GET,HEAD,POST,DELETE,PUT"
 set :allow_headers, "content-type,if-modified-since, x-token"
 set :expose_headers, "location,link"
 
-postWhitelist = ['sessions', 'faq']
-getWhitelist = ['resources', 'faq', 'campinfo']
+postWhitelist = ['sessions', 'faq', 'profiles']
+getWhitelist = ['resources', 'faq', 'campinfo', 'opportunities']
+putWhiteList = ['profiles/activate', 'profiles/resetPassword', 'profiles/newPassword']
 before '*' do
 
   if (postWhitelist.any? { |value| request.path_info.include? '/api/v1/' + value}) && (request.request_method == "POST")
     next
 
   elsif (getWhitelist.any? { |value| request.path_info.include? '/api/v1/' + value}) && (request.request_method == "GET")
+    next
+
+  elsif (putWhiteList.any? { |value| request.path_info.include? '/api/v1/' + value}) && (request.request_method == "PUT")
     next
 
   elsif request.request_method == "OPTIONS"
@@ -73,16 +78,28 @@ end
 # post new
 
 profileParams = ['full_name', 'email', 'address', 'phone_number', 'signature', 'camp_id', 'status', 'bio', 'user_name', 'password']
-signupParams = ['name', 'email', 'password', 'role']
+signupParams = ['name', 'email', 'password']
 
 
 post '/api/v1/profiles' do
-  if !checkParameters(@params, signupParams)
+  newProfile = params['params']
+  if !checkSignupParameters(newProfile, signupParams)
     halt 400, "the requirements were not met, did not post to database"
+  elsif database[:profiles].find(:email => newProfile['email']).first
+    halt 400, "a profile with this email address already exists"
   else
-    sendEmail('spyeadon@gmail.com', 'no-reply@fakedomain.io', 'test of sign-up confirmation', 'plain text test')
+    newProfile[:full_name] = newProfile.delete :name
+    newProfile['active'] = false
+    profInDB = database[:profiles].insert_one(newProfile)
+    url = 'http://localhost:8080/#/confirmation/' + profInDB.inserted_id.to_s
+    sendEmail(newProfile['email'],
+              'no-reply@fakedomain.io',
+              'WeRNextGeneration - Sign Up Confirmation',
+              'dummy plain text',
+              "Follow the link below to activate your account: <br><br> <a href=\"#{url}\">Activate Account</a>"
+    )
+    json 200
   end
-  # json database[:profiles].insert_one(params)
 end
 
 get '/api/v1/profiles/:profile_id' do
@@ -102,6 +119,50 @@ get '/api/v1/profiles' do
     data << people.to_h
   end
   json(data)
+end
+
+put '/api/v1/profiles/activate/:_id' do
+
+  if params[:_id] && database[:profiles].find(:_id => BSON::ObjectId(params[:_id])).first
+    profile = database[:profiles].find(:_id => BSON::ObjectId(params[:_id])).first
+    if !profile['active']
+      json database[:profiles].update_one({:_id =>BSON::ObjectId(params[:_id])}, {'$set' => {active: true}})
+    else
+      halt 200, "profile has already been activated"
+    end
+  else
+    halt 400, "profile ID invalid, could not activate account"
+  end
+
+end
+
+put '/api/v1/profiles/resetPassword/:email' do
+  email = params[:email]
+  profile = database[:profiles].find(:email => email).first
+  if !profile || !profile[:active]
+    halt 400, "there is no active profile with that email"
+  end
+  md5 = Digest::MD5.new
+  md5.update (email + DateTime.now().to_s)
+  database[:profiles].update_one({:email => email}, {'$set' => {resetToken: md5.hexdigest}})
+  url = 'http://localhost:8080/#/newPassword/' + md5.hexdigest
+  sendEmail(email,
+            'no-reply@fakedomain.io',
+            'WeRNextGeneration - Password Reset',
+            'dummy plain text',
+            "Follow the link below to reset your password: <br><br> <a href=\"#{url}\">Activate Account</a>"
+  )
+  json 200
+end
+
+put '/api/v1/profiles/newPassword/:resetToken/:password' do
+  profile = database[:profiles].find(:resetToken => params[:resetToken]).first
+  if profile && profile[:active]
+  database[:profiles].update_one({:resetToken => params[:resetToken]}, {'$set' => {password: params[:password], resetToken: ''}})
+  json 200
+  else
+    halt 400, "no profile found with that reset token"
+  end
 end
 
 put '/api/v1/profiles/:id' do
@@ -210,13 +271,13 @@ end
 
 #sessions endpoints
 
-post '/api/v1/sessions/:user_name/:password' do
+post '/api/v1/sessions/:email/:password' do
   data = []
-  results = database[:profiles].find(:user_name => (params[:user_name])).first
+  results = database[:profiles].find(:email => (params[:email])).first
 
   if !results
     halt(401)
-  elsif results[:password] === (params[:password])
+  elsif (results[:password] === (params[:password]) && results[:active] === true)
     token = database[:sessions].insert_one(params)
     data << token.inserted_id
     data << results
@@ -224,7 +285,7 @@ post '/api/v1/sessions/:user_name/:password' do
     halt(401)
   end
 
- return {"X_TOKEN"=> token.inserted_id.to_s, "profileData" => results}.to_json
+  return {"X_TOKEN"=> token.inserted_id.to_s, "profileData" => results}.to_json
 end
 
 delete '/api/v1/sessions/:_id' do
@@ -302,5 +363,15 @@ get '/api/v1/profile/:_id' do
     user = database[:profiles].find(:user_name == checkedSession[:user_name]).first
     json user
   end
+end
+
+# opportunities endpoints
+
+get '/api/v1/opportunities' do
+  data = []
+  database[:opportunities].find.each do |info|
+    data << info.to_h
+  end
+  json data
 end
 
