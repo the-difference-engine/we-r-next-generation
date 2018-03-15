@@ -39,14 +39,22 @@ before '*' do
   else
     collection = database[:sessions]
     @token = request.env['HTTP_X_TOKEN']
+    if !@token
+      @token = request.env['rack.request.form_hash'] || ''
+      @token = @token['headers'] || ''
+      @token = @token['x-token'] || ''
+    end
 
     if !@token
+      puts 'ha'
       halt(401, "Invalid Token")
     elsif !BSON::ObjectId.legal?(@token)
+      puts 'haha'
       halt(401, "Invalid Token")
     else
       session = collection.find( {:_id => BSON::ObjectId(@token) }).first
       if session.nil?
+        puts 'hahaha'
         halt(401, "Invalid Token")
       else
         @session = session
@@ -181,89 +189,93 @@ delete '/api/v1/profiles/:_id' do
 
 end
 
-# Camp endpoints
-get '/api/v1/applications/camps' do
-  data = []
-  database[:camps].find.each do |document|
-    data << document.to_h
-  end
-  json data
+post '/api/v1/applications' do
+  json database[:applications].insert_one(params['params'])
 end
 
-campParams = ['full_name', 'email', 'address', 'phone_number', 'signature', 'camp_id', 'status', 'bio']
-
-post '/api/v1/applications/camps' do
-  if !checkParameters(params, campParams)
-    halt 400, "the requirements were not met, did not post to database"
-  end
-  json database[:camps].insert_one(params)
-end
-
-get '/api/v1/applications/camps/:_id' do
-
-  json database[:camps].find(:_id => BSON::ObjectId(params[:_id])).first
-
-end
-
-put '/api/v1/applications/camps/:_id' do
-  id_number = params.delete("_id")
-  if !checkParameters(params, campParams)
-    halt 400, "the requirements were not met, did not post to database"
-  end
-
-  json database[:camps].update_one( { '_id' => BSON::ObjectId(id_number) },   { '$set' => params})
-
-end
-
-delete '/api/v1/applications/camps/:_id' do
-
-  database[:camps].delete_one( {_id: BSON::ObjectId(params[:_id]) } )
-
-end
+# Camp endpoints !!!!! this is no longer needed, but this code can be used for updating camps maybe?
+# get '/api/v1/applications/camps' do
+#   data = []
+#   database[:camps].find.each do |document|
+#     data << document.to_h
+#   end
+#   json data
+# end
+#
+# campParams = ['full_name', 'email', 'address', 'phone_number', 'signature', 'camp_id', 'status', 'bio']
+#
+# post '/api/v1/applications/camps' do
+#   if !checkParameters(params, campParams)
+#     halt 400, "the requirements were not met, did not post to database"
+#   end
+#   json database[:camps].insert_one(params)
+# end
+#
+# get '/api/v1/applications/camps/:_id' do
+#
+#   json database[:camps].find(:_id => BSON::ObjectId(params[:_id])).first
+#
+# end
+#
+# put '/api/v1/applications/camps/:_id' do
+#   id_number = params.delete("_id")
+#   if !checkParameters(params, campParams)
+#     halt 400, "the requirements were not met, did not post to database"
+#   end
+#
+#   json database[:camps].update_one( { '_id' => BSON::ObjectId(id_number) },   { '$set' => params})
+#
+# end
+#
+# delete '/api/v1/applications/camps/:_id' do
+#
+#   database[:camps].delete_one( {_id: BSON::ObjectId(params[:_id]) } )
+#
+# end
 
 # Volunteer endpoints
 
-get '/api/v1/applications/volunteers' do
-  data = []
-  database[:volunteers].find.each do |volunteer|
-    data << volunteer.to_h
-  end
-  json data
-end
+# get '/api/v1/applications/volunteers' do
+#   data = []
+#   database[:applications].find.each do |volunteer|
+#     data << volunteer.to_h
+#   end
+#   json data
+# end
+#
+#
+# get '/api/v1/applications/volunteers/:_id' do
+#   json database[:volunteers].find(:_id => BSON::ObjectId(params[:_id])).first
+# end
 
 
-get '/api/v1/applications/volunteers/:_id' do
-  json database[:volunteers].find(:_id => BSON::ObjectId(params[:_id])).first
-end
-
-
-post '/api/v1/applications/volunteers' do
-  if !checkParameters(params, profileParams)
-    halt 400, "the requirements were not met, did not post to database"
-  end
-  json database[:volunteers].insert_one(params)
-end
-
-
-put '/api/v1/applications/volunteers/:id' do
-  idnumber = params.delete("id")
-  if !checkParameters(params, profileParams)
-    halt 400, "the requirements were not met, did not post to database"
-  end
-  json database[:volunteers].update_one(
-    {'_id' => BSON::ObjectId(idnumber)}, {'$set' => params }
-  )
-end
-
-
-delete '/api/v1/applications/volunteers/:_id' do
-  database[:volunteers].delete_one( {_id: BSON::ObjectId(params[:_id]) } )
-  data = []
-  database[:volunteers].find.each do |volunteer|
-    data << volunteer.to_h
-  end
-  json data
-end
+# post '/api/v1/applications/volunteers' do
+#   if !checkParameters(params, profileParams)
+#     halt 400, "the requirements were not met, did not post to database"
+#   end
+#   json database[:volunteers].insert_one(params)
+# end
+#
+#
+# put '/api/v1/applications/volunteers/:id' do
+#   idnumber = params.delete("id")
+#   if !checkParameters(params, profileParams)
+#     halt 400, "the requirements were not met, did not post to database"
+#   end
+#   json database[:volunteers].update_one(
+#     {'_id' => BSON::ObjectId(idnumber)}, {'$set' => params }
+#     )
+# end
+#
+#
+# delete '/api/v1/applications/volunteers/:_id' do
+#   database[:volunteers].delete_one( {_id: BSON::ObjectId(params[:_id]) } )
+#   data = []
+#   database[:volunteers].find.each do |volunteer|
+#     data << volunteer.to_h
+#   end
+#   json data
+# end
 
 #sessions endpoints
 
