@@ -39,14 +39,22 @@ before '*' do
   else
     collection = database[:sessions]
     @token = request.env['HTTP_X_TOKEN']
+    if !@token
+      @token = request.env['rack.request.form_hash'] || ''
+      @token = @token['headers'] || ''
+      @token = @token['x-token'] || ''
+    end
 
     if !@token
+      puts 'ha'
       halt(401, "Invalid Token")
     elsif !BSON::ObjectId.legal?(@token)
+      puts 'haha'
       halt(401, "Invalid Token")
     else
       session = collection.find( {:_id => BSON::ObjectId(@token) }).first
       if session.nil?
+        puts 'hahaha'
         halt(401, "Invalid Token")
       else
         @session = session
@@ -182,7 +190,7 @@ delete '/api/v1/profiles/:_id' do
 end
 
 post '/api/v1/applications' do
-  json database[:applications].insert_one(params)
+  json database[:applications].insert_one(params['params'])
 end
 
 # Camp endpoints !!!!! this is no longer needed, but this code can be used for updating camps maybe?
