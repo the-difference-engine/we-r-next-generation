@@ -20,7 +20,7 @@ set :allow_headers, "content-type,if-modified-since, x-token"
 set :expose_headers, "location,link"
 
 postWhitelist = ['sessions', 'faq', 'profiles']
-getWhitelist = ['resources', 'faq', 'campinfo', 'opportunities']
+getWhitelist = ['resources', 'faq', 'campinfo', 'opportunities', 'applications/volunteers']
 putWhiteList = ['profiles/activate', 'profiles/resetPassword', 'profiles/newPassword']
 before '*' do
 
@@ -224,11 +224,11 @@ end
 # Volunteer endpoints
 
 get '/api/v1/applications/volunteers' do
-  data = []
-  database[:volunteers].find.each do |volunteer|
-    data << volunteer.to_h
+  applications = []
+  database[:applications].find.each do |application|
+    applications << application.to_h
   end
-  json data
+  json applications
 end
 
 
