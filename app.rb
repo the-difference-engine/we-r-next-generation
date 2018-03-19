@@ -150,7 +150,7 @@ put '/api/v1/profiles/resetPassword/:email' do
             'no-reply@fakedomain.io',
             'WeRNextGeneration - Password Reset',
             'dummy plain text',
-            "Follow the link below to reset your password: <br><br> <a href=\"#{url}\">Activate Account</a>"
+            "Follow the link below to reset your password: <br><br> <a href=\"#{url}\">Reset Password</a>"
   )
   json 200
 end
