@@ -133,13 +133,10 @@ get '/api/v1/camps' do
   json(data)
 end
 
-post path '/api/v1/camp/session/create' do
+post '/api/v1/camp/session/create' do
   newCamp = params['params']
-  newProfile[:full_name] = newProfile.delete :name
-  newProfile['active'] = false
-  profInDB = database[:profiles].insert_one(newProfile)
-  url = 'http://localhost:8080/#/confirmation/' + profInDB.inserted_id.to_s
-  json 200
+  newCamp = database[:camp_sessions].insert_one(newCamp)
+  json newCamp
 end
 
 
