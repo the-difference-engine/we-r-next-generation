@@ -129,6 +129,25 @@ get '/api/v1/profiles' do
   json(data)
 end
 
+# camp experience sessions endpoints
+
+# get all
+get '/api/v1/camps' do
+  put 'GOT TO CAMPS METHOD BACK END AYYYYYYYE'
+  data=[]
+  database[:camps].find.each do |camp|
+    data << camp.to_h
+  end
+  json(data)
+end
+
+post '/api/v1/camp/session/create' do
+  newCamp = params['params']
+  newCamp = database[:camp_sessions].insert_one(newCamp)
+  json newCamp
+end
+
+
 put '/api/v1/profiles/activate/:_id' do
 
   if params[:_id] && database[:profiles].find(:_id => BSON::ObjectId(params[:_id])).first
@@ -272,6 +291,16 @@ end
 #   data = []
 #   database[:volunteers].find.each do |volunteer|
 #     data << volunteer.to_h
+#   end
+#   json data
+# end
+
+# camp experience sessions endpoints
+
+# get '/api/v1/camp/session/all' do
+#   data = []
+#   database[:camps].find.each do |document|
+#     data << document.to_h
 #   end
 #   json data
 # end
