@@ -236,10 +236,20 @@ end
 # Volunteer endpoints
 
 get '/api/v1/applications/volunteers' do
-  applications = []
+  applications = {
+    submitted: [],
+    pending: [],
+    approved: [],
+    not_approved: []
+  }
+
   database[:applications].find.each do |application|
-    applications << application.to_h
+    if application[:type] == 'volunteer'
+      status = application[:status].to_sym
+      applications[status] << application.to_h
+    end
   end
+
   json applications
 end
 
