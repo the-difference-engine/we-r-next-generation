@@ -121,6 +121,17 @@ get '/api/v1/profiles' do
   json(data)
 end
 
+# get all
+get '/api/v1/camps' do
+  put 'GOT TO CAMPS METHOD BACK END AYYYYYYYE'
+  data=[]
+  database[:camps].find.each do |camp|
+    data << camp.to_h
+  end
+  json(data)
+end
+
+
 put '/api/v1/profiles/activate/:_id' do
 
   if params[:_id] && database[:profiles].find(:_id => BSON::ObjectId(params[:_id])).first
