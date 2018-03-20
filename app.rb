@@ -265,6 +265,25 @@ delete '/api/v1/applications/volunteers/:_id' do
   json data
 end
 
+# camp experience sessions endpoints
+
+get '/api/v1/camp/session/all' do
+  data = []
+  database[:camps].find.each do |document|
+    data << document.to_h
+  end
+  json data
+end
+
+post path '/api/v1/camp/session/create' do
+  newCamp = params['params']
+  newProfile[:full_name] = newProfile.delete :name
+  newProfile['active'] = false
+  profInDB = database[:profiles].insert_one(newProfile)
+  url = 'http://localhost:8080/#/confirmation/' + profInDB.inserted_id.to_s
+  json 200
+end
+
 #sessions endpoints
 
 post '/api/v1/sessions/:email/:password' do
