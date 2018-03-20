@@ -20,7 +20,7 @@ set :allow_headers, "content-type,if-modified-since, x-token"
 set :expose_headers, "location,link"
 
 postWhitelist = ['sessions', 'faq', 'profiles']
-getWhitelist = ['resources', 'faq', 'campinfo', 'opportunities']
+getWhitelist = ['resources', 'faq', 'campinfo', 'opportunities', 'applications/volunteers']
 putWhiteList = ['profiles/activate', 'profiles/resetPassword', 'profiles/newPassword']
 before '*' do
 
@@ -158,7 +158,7 @@ put '/api/v1/profiles/resetPassword/:email' do
             'no-reply@fakedomain.io',
             'WeRNextGeneration - Password Reset',
             'dummy plain text',
-            "Follow the link below to reset your password: <br><br> <a href=\"#{url}\">Activate Account</a>"
+            "Follow the link below to reset your password: <br><br> <a href=\"#{url}\">Reset Password</a>"
   )
   json 200
 end
@@ -235,15 +235,14 @@ end
 
 # Volunteer endpoints
 
-# get '/api/v1/applications/volunteers' do
-#   data = []
-#   database[:applications].find.each do |volunteer|
-#     data << volunteer.to_h
-#   end
-#   json data
-# end
-#
-#
+get '/api/v1/applications/volunteers' do
+  applications = []
+  database[:applications].find.each do |application|
+    applications << application.to_h
+  end
+  json applications
+end
+
 # get '/api/v1/applications/volunteers/:_id' do
 #   json database[:volunteers].find(:_id => BSON::ObjectId(params[:_id])).first
 # end
@@ -311,7 +310,8 @@ get '/api/v1/sessions/:_id' do
     halt(401, "Invalid Token")
   else
     checkedSession = database[:sessions].find(:_id => BSON::ObjectId(params[:_id])).first
-    return {"X_TOKEN" => checkedSession[:_id].to_s}.to_json
+    profileData = database[:profiles].find(:email => checkedSession[:email]).first
+    return {"X_TOKEN" => checkedSession[:_id].to_s, "profileData" => profileData}.to_json
 
   end
 end
