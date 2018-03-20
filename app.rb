@@ -121,6 +121,8 @@ get '/api/v1/profiles' do
   json(data)
 end
 
+# camp experience sessions endpoints
+
 # get all
 get '/api/v1/camps' do
   put 'GOT TO CAMPS METHOD BACK END AYYYYYYYE'
@@ -129,6 +131,15 @@ get '/api/v1/camps' do
     data << camp.to_h
   end
   json(data)
+end
+
+post path '/api/v1/camp/session/create' do
+  newCamp = params['params']
+  newProfile[:full_name] = newProfile.delete :name
+  newProfile['active'] = false
+  profInDB = database[:profiles].insert_one(newProfile)
+  url = 'http://localhost:8080/#/confirmation/' + profInDB.inserted_id.to_s
+  json 200
 end
 
 
@@ -278,22 +289,13 @@ end
 
 # camp experience sessions endpoints
 
-get '/api/v1/camp/session/all' do
-  data = []
-  database[:camps].find.each do |document|
-    data << document.to_h
-  end
-  json data
-end
-
-post path '/api/v1/camp/session/create' do
-  newCamp = params['params']
-  newProfile[:full_name] = newProfile.delete :name
-  newProfile['active'] = false
-  profInDB = database[:profiles].insert_one(newProfile)
-  url = 'http://localhost:8080/#/confirmation/' + profInDB.inserted_id.to_s
-  json 200
-end
+# get '/api/v1/camp/session/all' do
+#   data = []
+#   database[:camps].find.each do |document|
+#     data << document.to_h
+#   end
+#   json data
+# end
 
 #sessions endpoints
 
