@@ -237,20 +237,30 @@ end
 
 get '/api/v1/applications/volunteers' do
   applications = {
-    submitted: [],
-    pending: [],
-    approved: [],
-    not_approved: []
+    submitted: {:icon => 'fa fa-edit', :apps => []},
+    pending: {:icon => 'fa fa-clock-o', :apps => []},
+    approved: {:icon => 'fa fa-check', :apps => []},
+    not_approved: {:icon => 'fa fa-times', :apps => []}
   }
 
   database[:applications].find.each do |application|
     if application[:type] == 'volunteer'
       status = application[:status].to_sym
-      applications[status] << application.to_h
+      applications[status][:apps] << application.to_h
     end
   end
 
-  json applications
+  return {"applications" => applications, "type" => "volunteer"}.to_json
+end
+
+put '/api/v1/applications/volunteers/:id' do
+  idnumber = params.delete("id")
+  if !checkParameters(params, profileParams)
+    halt 400, "the requirements were not met, did not post to database"
+  end
+  json database[:volunteers].update_one(
+    {'_id' => BSON::ObjectId(idnumber)}, {'$set' => params }
+  )
 end
 
 # get '/api/v1/applications/volunteers/:_id' do
@@ -263,17 +273,6 @@ end
 #     halt 400, "the requirements were not met, did not post to database"
 #   end
 #   json database[:volunteers].insert_one(params)
-# end
-#
-#
-# put '/api/v1/applications/volunteers/:id' do
-#   idnumber = params.delete("id")
-#   if !checkParameters(params, profileParams)
-#     halt 400, "the requirements were not met, did not post to database"
-#   end
-#   json database[:volunteers].update_one(
-#     {'_id' => BSON::ObjectId(idnumber)}, {'$set' => params }
-#     )
 # end
 #
 #
