@@ -235,7 +235,8 @@ end
 
 # Volunteer endpoints
 
-get '/api/v1/applications/volunteers' do
+get '/api/v1/applications/:type' do
+  type = params[:type]
   applications = {
     submitted: {:icon => 'fa fa-edit', :apps => []},
     pending: {:icon => 'fa fa-clock-o', :apps => []},
@@ -244,13 +245,13 @@ get '/api/v1/applications/volunteers' do
   }
 
   database[:applications].find.each do |application|
-    if application[:type] == 'volunteer'
+    if application[:type] == type
       status = application[:status].to_sym
       applications[status][:apps] << application.to_h
     end
   end
 
-  return {"applications" => applications, "type" => "volunteer"}.to_json
+  return {"applications" => applications, "type" => type}.to_json
 end
 
 put '/api/v1/applications/volunteers/:id' do
