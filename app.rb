@@ -135,7 +135,7 @@ end
 
 # get all
 get '/api/v1/camps' do
-  put 'GOT TO CAMPS METHOD BACK END AYYYYYYYE'
+  puts 'GOT TO CAMPS METHOD BACK END AYYYYYYYE'
   data=[]
   database[:camps].find.each do |camp|
     data << camp.to_h
