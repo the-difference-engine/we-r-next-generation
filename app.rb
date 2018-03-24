@@ -20,7 +20,7 @@ set :allow_headers, "content-type,if-modified-since, x-token"
 set :expose_headers, "location,link"
 
 postWhitelist = ['sessions', 'faq', 'profiles']
-getWhitelist = ['resources', 'faq', 'campinfo', 'opportunities', 'applications/volunteers']
+getWhitelist = ['resources', 'faq', 'campinfo', 'opportunities', 'applications/volunteers', 'camp/session']
 putWhiteList = ['profiles/activate', 'profiles/resetPassword', 'profiles/newPassword']
 before '*' do
 
@@ -28,6 +28,7 @@ before '*' do
     next
 
   elsif (getWhitelist.any? { |value| request.path_info.include? '/api/v1/' + value}) && (request.request_method == "GET")
+    puts "Get White Listed"
     next
 
   elsif (putWhiteList.any? { |value| request.path_info.include? '/api/v1/' + value}) && (request.request_method == "PUT")
@@ -37,6 +38,7 @@ before '*' do
     next
 
   else
+    puts "Checking Token"
     collection = database[:sessions]
     @token = request.env['HTTP_X_TOKEN']
     if !@token
@@ -143,8 +145,18 @@ end
 
 post '/api/v1/camp/session/create' do
   newCamp = params['params']
-  newCamp = database[:camp_sessions].insert_one(newCamp)
-  json newCamp
+  createdCamp = database[:camp_sessions].insert_one(newCamp)
+  json createdCamp
+
+end
+
+get '/api/v1/camp/session/:id', :provides => :json do
+  if params[:id]
+    data = database[:camp_sessions].find(:_id => BSON::ObjectId(params[:id])).first
+    json data
+  else
+    json({msg: 'Found Nothing'})
+  end
 end
 
 
