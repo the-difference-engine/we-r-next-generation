@@ -20,7 +20,7 @@ set :allow_headers, "content-type,if-modified-since, x-token"
 set :expose_headers, "location,link"
 
 postWhitelist = ['sessions', 'faq', 'profiles']
-getWhitelist = ['resources', 'faq', 'campinfo', 'opportunities', 'applications/volunteers', 'camp/session']
+getWhitelist = ['resources', 'faq', 'campinfo', 'opportunities', 'applications/volunteers', 'camp/session', 'camp/sessions']
 putWhiteList = ['profiles/activate', 'profiles/resetPassword', 'profiles/newPassword']
 before '*' do
 
@@ -143,11 +143,45 @@ get '/api/v1/camps' do
   json(data)
 end
 
+# get all, sort by Field Name, default = date_start DESC
+get '/api/v1/camp/sessions', :provides => :json do
+  data=[]
+  puts "HERE IN CAMP SESSIONS SORT"
+  # if params[:field_name]
+  #   database[:camps].find.order(params[:field_name] + " " + params[:order]).each do |camp|
+  #     data << camp.to_h
+  #   end
+  # else
+  database[:camp_sessions].find.each do |camp|
+    data << camp.to_h
+    # end
+  end
+  json(data)
+end
+
 post '/api/v1/camp/session/create' do
   newCamp = params['params']
   createdCamp = database[:camp_sessions].insert_one(newCamp)
   json createdCamp
+end
 
+
+put '/api/v1/camp/session/:id/update' do
+  content_type :json
+  updatedCamp = params['params']
+  puts "UPDATED CAMP"
+  database[:camp_sessions].find(:_id => BSON::ObjectId(params[:id])).
+    update_one('$set' => {
+      'name' => updatedCamp['name'],
+      'date_start' => updatedCamp['date_start'],
+      'date_end' => updatedCamp['date_end'],
+      'description' => updatedCamp['description'],
+      'poc' => updatedCamp['poc'],
+      'limit' => updatedCamp['limit'],
+      'status' => updatedCamp['status']
+    }, '$currentDate' => { 'updated_at' => true })
+  updatedCamp = database[:camp_sessions].find(:_id => BSON::ObjectId(params[:id])).first.to_h
+  json updatedCamp
 end
 
 get '/api/v1/camp/session/:id', :provides => :json do
