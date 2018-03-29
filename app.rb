@@ -243,18 +243,25 @@ get '/api/v1/applications/:type' do
     approved: {:icon => 'fa fa-check', :apps => []},
     not_approved: {:icon => 'fa fa-times', :apps => []}
   }
+  allApplications = []
 
   database[:applications].find.each do |application|
-    if application[:type] == type
+    if type === 'all'
+      allApplications << application.to_h
+    elsif application[:type] == type
       status = application[:status].to_sym
       applications[status][:apps] << application.to_h
     end
   end
 
-  return {"applications" => applications, "type" => type}.to_json
+  if type === 'all'
+    return {"applications" => allApplications, "type" => type}.to_json
+  else
+    return {"applications" => applications, "type" => type}.to_json
+  end
 end
 
-put '/api/v1/applications/volunteers/:id' do
+put '/api/v1/applications/:id' do
   idnumber = params.delete("id")
   if !checkParameters(params, profileParams)
     halt 400, "the requirements were not met, did not post to database"
