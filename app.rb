@@ -184,6 +184,17 @@ put '/api/v1/camp/session/:id/update' do
   json updatedCamp
 end
 
+# get list of applicants related to the camp session id (string)
+get '/api/v1/camp/session/:id/applicants', :provides => :json do
+  data = []
+  if params[:id]
+    database[:applications].find(:camp => params[:id]).each do |applicant|
+      data << applicant.to_h
+    end
+    json(data)
+  end
+end
+
 get '/api/v1/camp/session/:id', :provides => :json do
   if params[:id]
     data = database[:camp_sessions].find(:_id => BSON::ObjectId(params[:id])).first
