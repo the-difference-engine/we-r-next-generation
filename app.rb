@@ -239,7 +239,7 @@ get '/api/v1/applications/:type' do
   type = params[:type]
   applications = {
     submitted: {:icon => 'fa fa-edit', :apps => {}, :next => 'pending'},
-    pending: {:icon => 'fa fa-clock-o', :apps => {}, :prev => 'submitted', :reject => 'reject', :approve => 'approved'},
+    pending: {:icon => 'fa fa-clock-o', :apps => {}, :prev => 'submitted', :reject => 'not_approved', :approve => 'approved'},
     approved: {:icon => 'fa fa-check', :apps => {}, :prev => 'pending'},
     not_approved: {:icon => 'fa fa-times', :apps => {}, :prev => 'pending', :next => 'delete'}
   }
@@ -250,7 +250,6 @@ get '/api/v1/applications/:type' do
       allApplications << application.to_h
     elsif application[:type] == type
       status = application[:status].to_sym
-      # applications[status][:apps] << application.to_h
       id = application[:_id].to_s
       applications[status][:apps][id] = application.to_h
     end
@@ -278,12 +277,11 @@ put '/api/v1/applications/status/:id' do
 end
 
 delete '/api/v1/applications/:id' do
-  database[:volunteers].delete_one( {_id: BSON::ObjectId(params[:_id]) } )
-  data = []
-  database[:volunteers].find.each do |volunteer|
-    data << volunteer.to_h
+  if database[:applications].find({:_id => BSON::ObjectId(params[:_id])}).first
+    database[:applications].delete_one( {_id: BSON::ObjectId(params[:_id]) } )
+  else
+    halt 400, "could not find this application in the database"
   end
-  json data
 end
 
 # get '/api/v1/applications/volunteers/:_id' do
