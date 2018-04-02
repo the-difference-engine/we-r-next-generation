@@ -277,8 +277,9 @@ put '/api/v1/applications/status/:id' do
 end
 
 delete '/api/v1/applications/:id' do
-  if database[:applications].find({:_id => BSON::ObjectId(params[:_id])}).first
-    database[:applications].delete_one( {_id: BSON::ObjectId(params[:_id]) } )
+  if database[:applications].find({:_id => BSON::ObjectId(params[:id])}).first
+    database[:applications].delete_one( {_id: BSON::ObjectId(params[:id]) } )
+    halt 200, "record deleted"
   else
     halt 400, "could not find this application in the database"
   end
