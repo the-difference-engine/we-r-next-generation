@@ -300,12 +300,54 @@ end
 
 # Volunteer endpoints
 
-get '/api/v1/applications/volunteers' do
-  applications = []
+get '/api/v1/applications/:type' do
+  type = params[:type]
+  applications = {
+    submitted: {:icon => 'fa fa-edit', :apps => {}, :next => 'pending'},
+    pending: {:icon => 'fa fa-clock-o', :apps => {}, :prev => 'submitted', :reject => 'not_approved', :approve => 'approved'},
+    approved: {:icon => 'fa fa-check', :apps => {}, :prev => 'pending'},
+    not_approved: {:icon => 'fa fa-times', :apps => {}, :prev => 'pending', :next => 'delete'}
+  }
+  allApplications = []
+
   database[:applications].find.each do |application|
-    applications << application.to_h
+    if type === 'all'
+      allApplications << application.to_h
+    elsif application[:type] == type
+      status = application[:status].to_sym
+      id = application[:_id].to_s
+      applications[status][:apps][id] = application.to_h
+    end
   end
-  json applications
+
+  if type === 'all'
+    return {"applications" => allApplications, "type" => type}.to_json
+  else
+    return {"applications" => applications, "type" => type}.to_json
+  end
+end
+
+put '/api/v1/applications/status/:id' do
+  id = params[:id]
+  newParams = params['params']
+  application = database[:applications].find({'_id' => BSON::ObjectId(id)}).first
+
+  if application
+    database[:applications].update_one({'_id' => BSON::ObjectId(id)}, {'$set' => {status: newParams['statusChange']}})
+    json database[:applications].find({'_id' => BSON::ObjectId(id)}).first
+  else
+    halt 400, "could not find this application in the database"
+  end
+
+end
+
+delete '/api/v1/applications/:id' do
+  if database[:applications].find({:_id => BSON::ObjectId(params[:id])}).first
+    database[:applications].delete_one( {_id: BSON::ObjectId(params[:id]) } )
+    halt 200, "record deleted"
+  else
+    halt 400, "could not find this application in the database"
+  end
 end
 
 # get '/api/v1/applications/volunteers/:_id' do
@@ -320,26 +362,6 @@ end
 #   json database[:volunteers].insert_one(params)
 # end
 #
-#
-# put '/api/v1/applications/volunteers/:id' do
-#   idnumber = params.delete("id")
-#   if !checkParameters(params, profileParams)
-#     halt 400, "the requirements were not met, did not post to database"
-#   end
-#   json database[:volunteers].update_one(
-#     {'_id' => BSON::ObjectId(idnumber)}, {'$set' => params }
-#     )
-# end
-#
-#
-# delete '/api/v1/applications/volunteers/:_id' do
-#   database[:volunteers].delete_one( {_id: BSON::ObjectId(params[:_id]) } )
-#   data = []
-#   database[:volunteers].find.each do |volunteer|
-#     data << volunteer.to_h
-#   end
-#   json data
-# end
 
 # camp experience sessions endpoints
 
