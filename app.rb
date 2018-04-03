@@ -132,11 +132,11 @@ end
 # camp experience sessions endpoints
 
 # get all
-get '/api/v1/camps' do
-  puts 'GOT TO CAMPS METHOD BACK END AYYYYYYYE'
+get '/api/v1/camp/session/get' do
   data=[]
-  database[:camps].find.each do |camp|
-    data << camp.to_h
+  database[:camp_sessions].find.each do |camps|
+    sorted = camps.sort_by { |obj| obj.name }
+    data << sorted.to_h
   end
   json(data)
 end
