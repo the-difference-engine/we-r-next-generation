@@ -10,6 +10,7 @@ require 'mongo'
 require 'sinatra/cors'
 require 'digest'
 
+
 use Rack::PostBodyContentTypeParser
 # Set MONGODB_URL
 database = Mongo::Client.new(ENV["MONGODB_URL"])
