@@ -20,7 +20,7 @@ set :allow_headers, "content-type,if-modified-since, x-token"
 set :expose_headers, "location,link"
 
 postWhitelist = ['sessions', 'faq', 'profiles']
-getWhitelist = ['resources', 'faq', 'campinfo', 'opportunities', 'applications/volunteers']
+getWhitelist = ['resources', 'faq', 'campinfo', 'opportunities', 'applications/volunteers', 'camp/session', 'camp/sessions']
 putWhiteList = ['profiles/activate', 'profiles/resetPassword', 'profiles/newPassword']
 before '*' do
 
@@ -28,6 +28,7 @@ before '*' do
     next
 
   elsif (getWhitelist.any? { |value| request.path_info.include? '/api/v1/' + value}) && (request.request_method == "GET")
+    puts "Get White Listed"
     next
 
   elsif (putWhiteList.any? { |value| request.path_info.include? '/api/v1/' + value}) && (request.request_method == "PUT")
@@ -37,6 +38,7 @@ before '*' do
     next
 
   else
+    puts "Checking Token"
     collection = database[:sessions]
     @token = request.env['HTTP_X_TOKEN']
     if !@token
@@ -141,10 +143,54 @@ get '/api/v1/camp/session/get' do
   json(data)
 end
 
+# get all, sort by Field Name, default = date_start DESC
+get '/api/v1/camp/sessions', :provides => :json do
+  data=[]
+  puts "HERE IN CAMP SESSIONS SORT"
+  # if params[:field_name]
+  #   database[:camps].find.order(params[:field_name] + " " + params[:order]).each do |camp|
+  #     data << camp.to_h
+  #   end
+  # else
+  database[:camp_sessions].find.each do |camp|
+    data << camp.to_h
+    # end
+  end
+  json(data)
+end
+
 post '/api/v1/camp/session/create' do
   newCamp = params['params']
-  newCamp = database[:camp_sessions].insert_one(newCamp)
-  json newCamp
+  createdCamp = database[:camp_sessions].insert_one(newCamp)
+  json createdCamp
+end
+
+
+put '/api/v1/camp/session/:id/update' do
+  content_type :json
+  updatedCamp = params['params']
+  puts "UPDATED CAMP"
+  database[:camp_sessions].find(:_id => BSON::ObjectId(params[:id])).
+    update_one('$set' => {
+      'name' => updatedCamp['name'],
+      'date_start' => updatedCamp['date_start'],
+      'date_end' => updatedCamp['date_end'],
+      'description' => updatedCamp['description'],
+      'poc' => updatedCamp['poc'],
+      'limit' => updatedCamp['limit'],
+      'status' => updatedCamp['status']
+    }, '$currentDate' => { 'updated_at' => true })
+  updatedCamp = database[:camp_sessions].find(:_id => BSON::ObjectId(params[:id])).first.to_h
+  json updatedCamp
+end
+
+get '/api/v1/camp/session/:id', :provides => :json do
+  if params[:id]
+    data = database[:camp_sessions].find(:_id => BSON::ObjectId(params[:id])).first
+    json data
+  else
+    json({msg: 'Found Nothing'})
+  end
 end
 
 
@@ -254,12 +300,54 @@ end
 
 # Volunteer endpoints
 
-get '/api/v1/applications/volunteers' do
-  applications = []
+get '/api/v1/applications/:type' do
+  type = params[:type]
+  applications = {
+    submitted: {:icon => 'fa fa-edit', :apps => {}, :next => 'pending'},
+    pending: {:icon => 'fa fa-clock-o', :apps => {}, :prev => 'submitted', :reject => 'not_approved', :approve => 'approved'},
+    approved: {:icon => 'fa fa-check', :apps => {}, :prev => 'pending'},
+    not_approved: {:icon => 'fa fa-times', :apps => {}, :prev => 'pending', :next => 'delete'}
+  }
+  allApplications = []
+
   database[:applications].find.each do |application|
-    applications << application.to_h
+    if type === 'all'
+      allApplications << application.to_h
+    elsif application[:type] == type
+      status = application[:status].to_sym
+      id = application[:_id].to_s
+      applications[status][:apps][id] = application.to_h
+    end
   end
-  json applications
+
+  if type === 'all'
+    return {"applications" => allApplications, "type" => type}.to_json
+  else
+    return {"applications" => applications, "type" => type}.to_json
+  end
+end
+
+put '/api/v1/applications/status/:id' do
+  id = params[:id]
+  newParams = params['params']
+  application = database[:applications].find({'_id' => BSON::ObjectId(id)}).first
+
+  if application
+    database[:applications].update_one({'_id' => BSON::ObjectId(id)}, {'$set' => {status: newParams['statusChange']}})
+    json database[:applications].find({'_id' => BSON::ObjectId(id)}).first
+  else
+    halt 400, "could not find this application in the database"
+  end
+
+end
+
+delete '/api/v1/applications/:id' do
+  if database[:applications].find({:_id => BSON::ObjectId(params[:id])}).first
+    database[:applications].delete_one( {_id: BSON::ObjectId(params[:id]) } )
+    halt 200, "record deleted"
+  else
+    halt 400, "could not find this application in the database"
+  end
 end
 
 # get '/api/v1/applications/volunteers/:_id' do
@@ -274,26 +362,6 @@ end
 #   json database[:volunteers].insert_one(params)
 # end
 #
-#
-# put '/api/v1/applications/volunteers/:id' do
-#   idnumber = params.delete("id")
-#   if !checkParameters(params, profileParams)
-#     halt 400, "the requirements were not met, did not post to database"
-#   end
-#   json database[:volunteers].update_one(
-#     {'_id' => BSON::ObjectId(idnumber)}, {'$set' => params }
-#     )
-# end
-#
-#
-# delete '/api/v1/applications/volunteers/:_id' do
-#   database[:volunteers].delete_one( {_id: BSON::ObjectId(params[:_id]) } )
-#   data = []
-#   database[:volunteers].find.each do |volunteer|
-#     data << volunteer.to_h
-#   end
-#   json data
-# end
 
 # camp experience sessions endpoints
 
