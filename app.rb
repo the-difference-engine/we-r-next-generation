@@ -466,7 +466,7 @@ get '/api/v1/profile/:_id' do
     halt(401, "Invalid Token")
   else
     checkedSession = database[:sessions].find(:_id => BSON::ObjectId(params[:_id])).first
-    user = database[:profiles].find(:user_name == checkedSession[:user_name]).first
+    user = database[:profiles].find(:email => checkedSession[:email]).first
     json user
   end
 end
