@@ -137,9 +137,8 @@ end
 # get all
 get '/api/v1/camp/session/get' do
   data=[]
-  database[:camp_sessions].find.each do |camps|
-    sorted = camps.sort_by { |obj| obj.name }
-    data << sorted.to_h
+  database[:camp_sessions].find.each do |camp|
+    data << camp.to_h
   end
   json(data)
 end
