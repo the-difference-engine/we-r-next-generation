@@ -137,9 +137,8 @@ end
 # get all
 get '/api/v1/camp/session/get' do
   data=[]
-  database[:camp_sessions].find.each do |camps|
-    sorted = camps.sort_by { |obj| obj.name }
-    data << sorted.to_h
+  database[:camp_sessions].find.each do |camp|
+    data << camp.to_h
   end
   json(data)
 end
@@ -183,6 +182,17 @@ put '/api/v1/camp/session/:id/update' do
     }, '$currentDate' => { 'updated_at' => true })
   updatedCamp = database[:camp_sessions].find(:_id => BSON::ObjectId(params[:id])).first.to_h
   json updatedCamp
+end
+
+# get list of applicants related to the camp session id (string)
+get '/api/v1/camp/session/:id/applicants', :provides => :json do
+  data = []
+  if params[:id]
+    database[:applications].find(:camp => params[:id]).each do |applicant|
+      data << applicant.to_h
+    end
+    json(data)
+  end
 end
 
 get '/api/v1/camp/session/:id', :provides => :json do
