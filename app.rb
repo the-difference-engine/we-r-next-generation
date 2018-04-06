@@ -200,7 +200,7 @@ get '/api/v1/camp/session/:id', :provides => :json do
     data = database[:camp_sessions].find(:_id => BSON::ObjectId(params[:id])).first
     json data
   else
-    json({msg: 'Found Nothing'})
+    json({msg: 'Error: Camp Not Found'})
   end
 end
 
@@ -273,6 +273,15 @@ end
 post '/api/v1/applications/waiver' do
   waiver = database[:waivers].insert_one(params['params'])
   json waiver.inserted_ids[0]
+end
+
+get '/api/v1/applications/:id/waiver' do
+  if params[:id]
+    data = database[:waivers].find(:application => params[:id]).first
+    json data
+  else
+    json({msg: 'Error: Waiver Not Found'})
+  end
 end
 
 # Camp endpoints !!!!! this is no longer needed, but this code can be used for updating camps maybe?
