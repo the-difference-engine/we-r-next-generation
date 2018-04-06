@@ -266,7 +266,13 @@ delete '/api/v1/profiles/:_id' do
 end
 
 post '/api/v1/applications' do
-  json database[:applications].insert_one(params['params'])
+  app = database[:applications].insert_one(params['params'])
+  json app.inserted_ids[0]
+end
+
+post '/api/v1/applications/waiver' do
+  waiver = database[:waivers].insert_one(params['params'])
+  json waiver.inserted_ids[0]
 end
 
 # Camp endpoints !!!!! this is no longer needed, but this code can be used for updating camps maybe?
