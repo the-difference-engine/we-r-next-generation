@@ -334,11 +334,12 @@ get '/api/v1/applications/:type' do
     approved: {:icon => 'fa fa-check', :apps => {}, :prev => 'pending'},
     not_approved: {:icon => 'fa fa-times', :apps => {}, :prev => 'pending', :next => 'delete'}
   }
-  allApplications = []
 
   database[:applications].find.each do |application|
     if type === 'all'
-      allApplications << application.to_h
+      status = application[:status].to_sym
+      id = application[:_id].to_s
+      applications[status][:apps][id] = application.to_h
     elsif application[:type] == type
       status = application[:status].to_sym
       id = application[:_id].to_s
@@ -346,11 +347,7 @@ get '/api/v1/applications/:type' do
     end
   end
 
-  if type === 'all'
-    return {"applications" => allApplications, "type" => type}.to_json
-  else
     return {"applications" => applications, "type" => type}.to_json
-  end
 end
 
 put '/api/v1/applications/status/:id' do
