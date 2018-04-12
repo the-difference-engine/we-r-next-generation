@@ -93,7 +93,7 @@ signupParams = ['name', 'email', 'password']
 
 
 post '/api/v1/profiles' do
-  newProfile = params['params']
+  newProfile = params
   if !checkSignupParameters(newProfile, signupParams)
     halt 400, "the requirements were not met, did not post to database"
   elsif database[:profiles].find(:email => newProfile['email']).first
