@@ -93,7 +93,7 @@ signupParams = ['name', 'email', 'password']
 
 
 post '/api/v1/profiles' do
-  newProfile = params['params']
+  newProfile = params
   if !checkSignupParameters(newProfile, signupParams)
     halt 400, "the requirements were not met, did not post to database"
   elsif database[:profiles].find(:email => newProfile['email']).first
@@ -220,7 +220,7 @@ put '/api/v1/profiles/activate/:_id' do
 
 end
 
-put '/api/v1/profiles/resetPassword/:email' do
+put '/api/v1/profiles/resetPassword' do
   email = params[:email]
   profile = database[:profiles].find(:email => email).first
   if !profile || !profile[:active]
@@ -239,7 +239,7 @@ put '/api/v1/profiles/resetPassword/:email' do
   json 200
 end
 
-put '/api/v1/profiles/newPassword/:resetToken/:password' do
+put '/api/v1/profiles/newPassword' do
   profile = database[:profiles].find(:resetToken => params[:resetToken]).first
   if profile && profile[:active]
   database[:profiles].update_one({:resetToken => params[:resetToken]}, {'$set' => {password: params[:password], resetToken: ''}})
@@ -334,11 +334,12 @@ get '/api/v1/applications/:type' do
     approved: {:icon => 'fa fa-check', :apps => {}, :prev => 'pending'},
     not_approved: {:icon => 'fa fa-times', :apps => {}, :prev => 'pending', :next => 'delete'}
   }
-  allApplications = []
 
   database[:applications].find.each do |application|
     if type === 'all'
-      allApplications << application.to_h
+      status = application[:status].to_sym
+      id = application[:_id].to_s
+      applications[status][:apps][id] = application.to_h
     elsif application[:type] == type
       status = application[:status].to_sym
       id = application[:_id].to_s
@@ -346,11 +347,7 @@ get '/api/v1/applications/:type' do
     end
   end
 
-  if type === 'all'
-    return {"applications" => allApplications, "type" => type}.to_json
-  else
     return {"applications" => applications, "type" => type}.to_json
-  end
 end
 
 put '/api/v1/applications/status/:id' do
@@ -401,7 +398,7 @@ end
 
 #sessions endpoints
 
-post '/api/v1/sessions/:email/:password' do
+post '/api/v1/sessions' do
   data = []
   results = database[:profiles].find(:email => (params[:email])).first
 
