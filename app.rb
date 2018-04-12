@@ -220,7 +220,7 @@ put '/api/v1/profiles/activate/:_id' do
 
 end
 
-put '/api/v1/profiles/resetPassword/:email' do
+put '/api/v1/profiles/resetPassword' do
   email = params[:email]
   profile = database[:profiles].find(:email => email).first
   if !profile || !profile[:active]
@@ -239,7 +239,7 @@ put '/api/v1/profiles/resetPassword/:email' do
   json 200
 end
 
-put '/api/v1/profiles/newPassword/:resetToken/:password' do
+put '/api/v1/profiles/newPassword' do
   profile = database[:profiles].find(:resetToken => params[:resetToken]).first
   if profile && profile[:active]
   database[:profiles].update_one({:resetToken => params[:resetToken]}, {'$set' => {password: params[:password], resetToken: ''}})
