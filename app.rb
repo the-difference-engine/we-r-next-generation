@@ -398,7 +398,7 @@ end
 
 #sessions endpoints
 
-post '/api/v1/sessions/:email/:password' do
+post '/api/v1/sessions' do
   data = []
   results = database[:profiles].find(:email => (params[:email])).first
 
