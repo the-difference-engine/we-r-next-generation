@@ -24,7 +24,7 @@ postWhitelist = ['sessions', 'faq', 'profiles']
 getWhitelist = ['resources', 'faq', 'campinfo', 'opportunities', 'applications/volunteers', 'camp/session', 'camp/sessions']
 putWhiteList = ['profiles/activate', 'profiles/resetPassword', 'profiles/newPassword']
 before '*' do
-
+  puts "begining of before do"
   if (postWhitelist.any? { |value| request.path_info.include? '/api/v1/' + value}) && (request.request_method == "POST")
     next
 
