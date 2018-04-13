@@ -271,8 +271,12 @@ post '/api/v1/applications' do
 end
 
 post '/api/v1/applications/waiver' do
-  waiver = database[:waivers].insert_one(params['params'])
-  json waiver.inserted_ids[0]
+  app = database[:applications].insert_one(params['params']['application'])
+  app_id = app.inserted_ids[0].to_s
+  waiver = params['params']['waiver']
+  waiver['application'] = app_id
+  waiver = database[:waivers].insert_one(waiver)
+  json app_id
 end
 
 get '/api/v1/applications/:id/waiver' do
