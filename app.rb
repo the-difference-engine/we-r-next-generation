@@ -338,6 +338,12 @@ get '/api/v1/applications/:type' do
     approved: {:icon => 'fa fa-check', :apps => {}, :prev => 'pending'},
     not_approved: {:icon => 'fa fa-times', :apps => {}, :prev => 'pending', :next => 'delete'}
   }
+  sessions = {}
+  if type === 'camper'
+    database[:camp_sessions].find.each do |session|
+      sessions[session[:_id].to_s] = session.to_h
+    end
+  end
 
   database[:applications].find.each do |application|
     if type === 'all'
@@ -348,6 +354,9 @@ get '/api/v1/applications/:type' do
       status = application[:status].to_sym
       id = application[:_id].to_s
       applications[status][:apps][id] = application.to_h
+      if application[:type] === 'camper'
+        applications[status][:apps][id]['camp_data'] = sessions[application[:camp]]
+      end
     end
   end
 
@@ -361,7 +370,10 @@ put '/api/v1/applications/status/:id' do
 
   if application
     database[:applications].update_one({'_id' => BSON::ObjectId(id)}, {'$set' => {status: newParams['statusChange']}})
-    json database[:applications].find({'_id' => BSON::ObjectId(id)}).first
+    campData = database[:camp_sessions].find({'_id' => BSON::ObjectId(application[:camp])}).first
+    newApplication = database[:applications].find({'_id' => BSON::ObjectId(id)}).first
+    newApplication['camp_data'] = campData
+    json newApplication
   else
     halt 400, "could not find this application in the database"
   end
