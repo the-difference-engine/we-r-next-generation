@@ -6,6 +6,7 @@ require 'rack'
 require 'rack/contrib'
 require_relative 'validate'
 require_relative 'emailUtils'
+require_relative 'pswdSecurity'
 require 'mongo'
 require 'sinatra/cors'
 require 'digest'
@@ -338,6 +339,12 @@ get '/api/v1/applications/:type' do
     approved: {:icon => 'fa fa-check', :apps => {}, :prev => 'pending'},
     not_approved: {:icon => 'fa fa-times', :apps => {}, :prev => 'pending', :next => 'delete'}
   }
+  sessions = {}
+  if type === 'camper'
+    database[:camp_sessions].find.each do |session|
+      sessions[session[:_id].to_s] = session.to_h
+    end
+  end
 
   database[:applications].find.each do |application|
     if type === 'all'
@@ -348,10 +355,21 @@ get '/api/v1/applications/:type' do
       status = application[:status].to_sym
       id = application[:_id].to_s
       applications[status][:apps][id] = application.to_h
+      if application[:type] === 'camper'
+        applications[status][:apps][id]['camp_data'] = sessions[application[:camp]]
+      end
     end
   end
 
     return {"applications" => applications, "type" => type}.to_json
+end
+
+get '/api/v1/applications/app/:id' do
+  application = database[:applications].find({'_id' => BSON::ObjectId(params[:id])}).first
+  if application && application[:type] === 'camper'
+    application[:camp_data] = database[:camp_sessions].find({'_id' => BSON::ObjectId(application[:camp])}).first
+  end
+   json application
 end
 
 put '/api/v1/applications/status/:id' do
@@ -361,7 +379,11 @@ put '/api/v1/applications/status/:id' do
 
   if application
     database[:applications].update_one({'_id' => BSON::ObjectId(id)}, {'$set' => {status: newParams['statusChange']}})
-    json database[:applications].find({'_id' => BSON::ObjectId(id)}).first
+    newApplication = database[:applications].find({'_id' => BSON::ObjectId(id)}).first
+    if application[:camp]
+      newApplication['camp_data'] = database[:camp_sessions].find({'_id' => BSON::ObjectId(application[:camp])}).first
+    end
+    json newApplication
   else
     halt 400, "could not find this application in the database"
   end

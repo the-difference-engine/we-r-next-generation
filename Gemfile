@@ -15,6 +15,7 @@ gem 'bson'
 gem 'sinatra-cors'
 gem 'aws-sdk'
 gem 'digest'
+gem 'bcrypt'
 
 # for tests
 group :test do
