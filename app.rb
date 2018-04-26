@@ -364,6 +364,14 @@ get '/api/v1/applications/:type' do
     return {"applications" => applications, "type" => type}.to_json
 end
 
+get '/api/v1/applications/app/:id' do
+  application = database[:applications].find({'_id' => BSON::ObjectId(params[:id])}).first
+  if application && application[:type] === 'camper'
+    application[:camp_data] = database[:camp_sessions].find({'_id' => BSON::ObjectId(application[:camp])}).first
+  end
+   json application
+end
+
 put '/api/v1/applications/status/:id' do
   id = params[:id]
   newParams = params['params']
@@ -371,9 +379,10 @@ put '/api/v1/applications/status/:id' do
 
   if application
     database[:applications].update_one({'_id' => BSON::ObjectId(id)}, {'$set' => {status: newParams['statusChange']}})
-    campData = database[:camp_sessions].find({'_id' => BSON::ObjectId(application[:camp])}).first
     newApplication = database[:applications].find({'_id' => BSON::ObjectId(id)}).first
-    newApplication['camp_data'] = campData
+    if application[:camp]
+      newApplication['camp_data'] = database[:camp_sessions].find({'_id' => BSON::ObjectId(application[:camp])}).first
+    end
     json newApplication
   else
     halt 400, "could not find this application in the database"
