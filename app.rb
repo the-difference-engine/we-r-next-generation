@@ -6,6 +6,7 @@ require 'rack'
 require 'rack/contrib'
 require_relative 'validate'
 require_relative 'emailUtils'
+require_relative 'pswdSecurity'
 require 'mongo'
 require 'sinatra/cors'
 require 'digest'
@@ -93,7 +94,7 @@ signupParams = ['name', 'email', 'password']
 
 
 post '/api/v1/profiles' do
-  newProfile = params['params']
+  newProfile = params
   if !checkSignupParameters(newProfile, signupParams)
     halt 400, "the requirements were not met, did not post to database"
   elsif database[:profiles].find(:email => newProfile['email']).first
@@ -220,7 +221,7 @@ put '/api/v1/profiles/activate/:_id' do
 
 end
 
-put '/api/v1/profiles/resetPassword/:email' do
+put '/api/v1/profiles/resetPassword' do
   email = params[:email]
   profile = database[:profiles].find(:email => email).first
   if !profile || !profile[:active]
@@ -239,7 +240,7 @@ put '/api/v1/profiles/resetPassword/:email' do
   json 200
 end
 
-put '/api/v1/profiles/newPassword/:resetToken/:password' do
+put '/api/v1/profiles/newPassword' do
   profile = database[:profiles].find(:resetToken => params[:resetToken]).first
   if profile && profile[:active]
   database[:profiles].update_one({:resetToken => params[:resetToken]}, {'$set' => {password: params[:password], resetToken: ''}})
@@ -271,8 +272,12 @@ post '/api/v1/applications' do
 end
 
 post '/api/v1/applications/waiver' do
-  waiver = database[:waivers].insert_one(params['params'])
-  json waiver.inserted_ids[0]
+  app = database[:applications].insert_one(params['params']['application'])
+  app_id = app.inserted_ids[0].to_s
+  waiver = params['params']['waiver']
+  waiver['application'] = app_id
+  waiver = database[:waivers].insert_one(waiver)
+  json app_id
 end
 
 get '/api/v1/applications/:id/waiver' do
@@ -334,23 +339,37 @@ get '/api/v1/applications/:type' do
     approved: {:icon => 'fa fa-check', :apps => {}, :prev => 'pending'},
     not_approved: {:icon => 'fa fa-times', :apps => {}, :prev => 'pending', :next => 'delete'}
   }
-  allApplications = []
+  sessions = {}
+  if type === 'camper'
+    database[:camp_sessions].find.each do |session|
+      sessions[session[:_id].to_s] = session.to_h
+    end
+  end
 
   database[:applications].find.each do |application|
     if type === 'all'
-      allApplications << application.to_h
+      status = application[:status].to_sym
+      id = application[:_id].to_s
+      applications[status][:apps][id] = application.to_h
     elsif application[:type] == type
       status = application[:status].to_sym
       id = application[:_id].to_s
       applications[status][:apps][id] = application.to_h
+      if application[:type] === 'camper'
+        applications[status][:apps][id]['camp_data'] = sessions[application[:camp]]
+      end
     end
   end
 
-  if type === 'all'
-    return {"applications" => allApplications, "type" => type}.to_json
-  else
     return {"applications" => applications, "type" => type}.to_json
+end
+
+get '/api/v1/applications/app/:id' do
+  application = database[:applications].find({'_id' => BSON::ObjectId(params[:id])}).first
+  if application && application[:type] === 'camper'
+    application[:camp_data] = database[:camp_sessions].find({'_id' => BSON::ObjectId(application[:camp])}).first
   end
+   json application
 end
 
 put '/api/v1/applications/status/:id' do
@@ -360,7 +379,11 @@ put '/api/v1/applications/status/:id' do
 
   if application
     database[:applications].update_one({'_id' => BSON::ObjectId(id)}, {'$set' => {status: newParams['statusChange']}})
-    json database[:applications].find({'_id' => BSON::ObjectId(id)}).first
+    newApplication = database[:applications].find({'_id' => BSON::ObjectId(id)}).first
+    if application[:camp]
+      newApplication['camp_data'] = database[:camp_sessions].find({'_id' => BSON::ObjectId(application[:camp])}).first
+    end
+    json newApplication
   else
     halt 400, "could not find this application in the database"
   end
@@ -401,7 +424,7 @@ end
 
 #sessions endpoints
 
-post '/api/v1/sessions/:email/:password' do
+post '/api/v1/sessions' do
   data = []
   results = database[:profiles].find(:email => (params[:email])).first
 
