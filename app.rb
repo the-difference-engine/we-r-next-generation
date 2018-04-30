@@ -366,7 +366,7 @@ end
 
 get '/api/v1/applications/app/:id' do
   application = database[:applications].find({'_id' => BSON::ObjectId(params[:id])}).first
-  if application && application[:type] === 'camper'
+  if application && (application[:type] === 'camper' || application[:type] === 'volunteer')
     application[:camp_data] = database[:camp_sessions].find({'_id' => BSON::ObjectId(application[:camp])}).first
   end
    json application
