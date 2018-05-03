@@ -22,7 +22,7 @@ set :expose_headers, "location,link"
 
 postWhitelist = ['sessions', 'faq', 'profiles']
 getWhitelist = ['resources', 'faq', 'campinfo', 'opportunities', 'applications/volunteers', 'camp/session', 'camp/sessions']
-putWhiteList = ['profiles/activate', 'profiles/resetPassword', 'profiles/newPassword']
+putWhiteList = ['profiles/activate', 'profiles/resetPassword', 'profiles/newPassword', 'resources']
 before '*' do
 
   if (postWhitelist.any? { |value| request.path_info.include? '/api/v1/' + value}) && (request.request_method == "POST")
@@ -450,6 +450,10 @@ get '/api/v1/resources/:pagename' do
   else
     json result.first['dataObj']
   end
+end
+
+put '/api/v1/resources/update/heroimage' do
+  json database[:pageresources].update_one({'name' => 'homepage'}, {'$set' => {partner: 'ha!'}})
 end
 
 # faq endpoints
