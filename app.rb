@@ -147,7 +147,6 @@ end
 # get all, sort by Field Name, default = date_start DESC
 get '/api/v1/camp/sessions', :provides => :json do
   data=[]
-  puts "HERE IN CAMP SESSIONS SORT"
   # if params[:field_name]
   #   database[:camps].find.order(params[:field_name] + " " + params[:order]).each do |camp|
   #     data << camp.to_h
@@ -170,7 +169,6 @@ end
 put '/api/v1/camp/session/:id/update' do
   content_type :json
   updatedCamp = params['params']
-  puts "UPDATED CAMP"
   database[:camp_sessions].find(:_id => BSON::ObjectId(params[:id])).
     update_one('$set' => {
       'name' => updatedCamp['name'],
@@ -527,5 +525,26 @@ get '/api/v1/opportunities' do
     data << info.to_h
   end
   json data
+end
+
+
+# administrative edit endpoints
+
+put '/api/v1/admin/waiver/:type/update' do
+  content_type :json
+  waiver_type = "waiver_" + params[:type]
+  updated_waiver = params['params']
+  database[:pageresources].find(:name => waiver_type).
+    update_one('$set' => {
+      'name' => updated_waiver['name'],
+      'dataObj' => updated_waiver['date_start'],
+      'date_end' => updated_waiver['date_end'],
+      'description' => updated_waiver['description'],
+      'poc' => updated_waiver['poc'],
+      'limit' => updated_waiver['limit'],
+      'status' => updated_waiver['status']
+    }, '$currentDate' => { 'updated_at' => true })
+  updatedCamp = database[:camp_sessions].find(:_id => BSON::ObjectId(params[:id])).first.to_h
+  json updatedCamp
 end
 
