@@ -6,6 +6,7 @@ require 'rack'
 require 'rack/contrib'
 require_relative 'validate'
 require_relative 'emailUtils'
+require_relative 'pswdSecurity'
 require 'mongo'
 require 'sinatra/cors'
 require 'digest'
@@ -24,7 +25,7 @@ postWhitelist = ['sessions', 'faq', 'profiles']
 getWhitelist = ['resources', 'faq', 'campinfo', 'opportunities', 'applications/volunteers', 'camp/session', 'camp/sessions']
 putWhiteList = ['profiles/activate', 'profiles/resetPassword', 'profiles/newPassword', 'resources']
 before '*' do
-
+  puts "begining of before do"
   if (postWhitelist.any? { |value| request.path_info.include? '/api/v1/' + value}) && (request.request_method == "POST")
     next
 
@@ -146,7 +147,6 @@ end
 # get all, sort by Field Name, default = date_start DESC
 get '/api/v1/camp/sessions', :provides => :json do
   data=[]
-  puts "HERE IN CAMP SESSIONS SORT"
   # if params[:field_name]
   #   database[:camps].find.order(params[:field_name] + " " + params[:order]).each do |camp|
   #     data << camp.to_h
@@ -169,7 +169,6 @@ end
 put '/api/v1/camp/session/:id/update' do
   content_type :json
   updatedCamp = params['params']
-  puts "UPDATED CAMP"
   database[:camp_sessions].find(:_id => BSON::ObjectId(params[:id])).
     update_one('$set' => {
       'name' => updatedCamp['name'],
@@ -338,6 +337,12 @@ get '/api/v1/applications/:type' do
     approved: {:icon => 'fa fa-check', :apps => {}, :prev => 'pending'},
     not_approved: {:icon => 'fa fa-times', :apps => {}, :prev => 'pending', :next => 'delete'}
   }
+  sessions = {}
+  if type === 'camper'
+    database[:camp_sessions].find.each do |session|
+      sessions[session[:_id].to_s] = session.to_h
+    end
+  end
 
   database[:applications].find.each do |application|
     if type === 'all'
@@ -348,10 +353,21 @@ get '/api/v1/applications/:type' do
       status = application[:status].to_sym
       id = application[:_id].to_s
       applications[status][:apps][id] = application.to_h
+      if application[:type] === 'camper'
+        applications[status][:apps][id]['camp_data'] = sessions[application[:camp]]
+      end
     end
   end
 
     return {"applications" => applications, "type" => type}.to_json
+end
+
+get '/api/v1/applications/app/:id' do
+  application = database[:applications].find({'_id' => BSON::ObjectId(params[:id])}).first
+  if application && (application[:type] === 'camper' || application[:type] === 'volunteer')
+    application[:camp_data] = database[:camp_sessions].find({'_id' => BSON::ObjectId(application[:camp])}).first
+  end
+   json application
 end
 
 put '/api/v1/applications/status/:id' do
@@ -361,7 +377,11 @@ put '/api/v1/applications/status/:id' do
 
   if application
     database[:applications].update_one({'_id' => BSON::ObjectId(id)}, {'$set' => {status: newParams['statusChange']}})
-    json database[:applications].find({'_id' => BSON::ObjectId(id)}).first
+    newApplication = database[:applications].find({'_id' => BSON::ObjectId(id)}).first
+    if application[:camp]
+      newApplication['camp_data'] = database[:camp_sessions].find({'_id' => BSON::ObjectId(application[:camp])}).first
+    end
+    json newApplication
   else
     halt 400, "could not find this application in the database"
   end
@@ -509,5 +529,26 @@ get '/api/v1/opportunities' do
     data << info.to_h
   end
   json data
+end
+
+
+# administrative edit endpoints
+
+put '/api/v1/admin/waiver/:type/update' do
+  content_type :json
+  waiver_type = "waiver_" + params[:type]
+  updated_waiver = params['params']
+  database[:pageresources].find(:name => waiver_type).
+    update_one('$set' => {
+      'name' => updated_waiver['name'],
+      'dataObj' => updated_waiver['date_start'],
+      'date_end' => updated_waiver['date_end'],
+      'description' => updated_waiver['description'],
+      'poc' => updated_waiver['poc'],
+      'limit' => updated_waiver['limit'],
+      'status' => updated_waiver['status']
+    }, '$currentDate' => { 'updated_at' => true })
+  updatedCamp = database[:camp_sessions].find(:_id => BSON::ObjectId(params[:id])).first.to_h
+  json updatedCamp
 end
 
