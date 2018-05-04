@@ -55,6 +55,14 @@ before '*' do
     elsif !BSON::ObjectId.legal?(@token)
       puts 'haha'
       halt(401, "Invalid Token")
+    elsif request.path_info.include? 'admin'
+      session = collection.find( {:_id => BSON::ObjectId(@token) }).first
+      if session.nil?
+        @profile = database[:profiles].find(:email => session[:email]).first
+        if !@profile || @profile[:role] != 'admin'
+          halt(401, "Admin profile required")
+        end
+      end
     else
       session = collection.find( {:_id => BSON::ObjectId(@token) }).first
       if session.nil?
@@ -329,7 +337,7 @@ end
 
 # Volunteer endpoints
 
-get '/api/v1/applications/:type' do
+get '/api/v1/admin/applications/:type' do
   type = params[:type]
   applications = {
     submitted: {:icon => 'fa fa-edit', :apps => {}, :next => 'pending'},
@@ -362,7 +370,7 @@ get '/api/v1/applications/:type' do
     return {"applications" => applications, "type" => type}.to_json
 end
 
-get '/api/v1/applications/app/:id' do
+get '/api/v1/admin/applications/app/:id' do
   application = database[:applications].find({'_id' => BSON::ObjectId(params[:id])}).first
   if application && (application[:type] === 'camper' || application[:type] === 'volunteer')
     application[:camp_data] = database[:camp_sessions].find({'_id' => BSON::ObjectId(application[:camp])}).first
@@ -370,7 +378,7 @@ get '/api/v1/applications/app/:id' do
    json application
 end
 
-put '/api/v1/applications/status/:id' do
+put '/api/v1/admin/applications/status/:id' do
   id = params[:id]
   newParams = params['params']
   application = database[:applications].find({'_id' => BSON::ObjectId(id)}).first
@@ -388,7 +396,7 @@ put '/api/v1/applications/status/:id' do
 
 end
 
-delete '/api/v1/applications/:id' do
+delete '/api/v1/admin/applications/:id' do
   if database[:applications].find({:_id => BSON::ObjectId(params[:id])}).first
     database[:applications].delete_one( {_id: BSON::ObjectId(params[:id]) } )
     halt 200, "record deleted"
