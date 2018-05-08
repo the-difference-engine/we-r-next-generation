@@ -56,8 +56,11 @@ before '*' do
       puts 'haha'
       halt(401, "Invalid Token")
     elsif request.path_info.include? 'admin'
+      puts "Checking admin credentials"
       session = collection.find( {:_id => BSON::ObjectId(@token) }).first
       if session.nil?
+        halt(401, "Invalid Token in admin check")
+      else
         @profile = database[:profiles].find(:email => session[:email]).first
         if !@profile || @profile[:role] != 'admin'
           halt(401, "Admin profile required")
