@@ -548,3 +548,38 @@ put '/api/v1/admin/waiver/:type/update' do
   json updatedCamp
 end
 
+
+# faq edits
+
+get '/api/v1/faqEdit/:_id' do
+  json database[:faqs].find(:_id => BSON::ObjectId(params[:_id])).first
+end
+
+post '/api/v1/faqEdit/:id' do
+  content_type :json
+  updatedFaq = params['params']
+  puts "UPDATED FAQ"
+  database[:faqs].find(:_id => BSON::ObjectId(params[:id])).
+    update_one('$set' => {
+      'question' => updatedFaq['question'],
+      'answer' => updatedFaq['answer'],
+      'category' => updatedFaq['category'],
+    },)
+  updatedFaq = database[:faqs].find(:_id => BSON::ObjectId(params[:id])).first.to_h
+  json updatedFaq
+end
+
+delete '/api/v1/faqEdit/:id' do
+  puts "DELETE FAQ METHOD"
+  if database[:faqs].find({:_id => BSON::ObjectId(params[:id])}).first
+    database[:faqs].delete_one( {_id: BSON::ObjectId(params[:id]) } )
+    halt 200, "faq deleted"
+  else
+    halt 400, "could not find this faq in the database"
+  end
+end
+
+post '/api/v1/faqAdd' do
+  newFaq = database[:faqs].insert_one(params['params'])
+  json newFaq.inserted_ids[0]
+end
