@@ -533,18 +533,11 @@ end
 put '/api/v1/admin/waiver/:type/update' do
   content_type :json
   waiver_type = "waiver_" + params[:type]
-  updated_waiver = params['params']
-  database[:pageresources].find(:name => waiver_type).
-    update_one('$set' => {
-      'name' => updated_waiver['name'],
-      'dataObj' => updated_waiver['date_start'],
-      'date_end' => updated_waiver['date_end'],
-      'description' => updated_waiver['description'],
-      'poc' => updated_waiver['poc'],
-      'limit' => updated_waiver['limit'],
-      'status' => updated_waiver['status']
-    }, '$currentDate' => { 'updated_at' => true })
-  updatedCamp = database[:camp_sessions].find(:_id => BSON::ObjectId(params[:id])).first.to_h
-  json updatedCamp
+  updated_waiver = params['dataObj']
+  waiver = database[:pageresources].update_one({:name => waiver_type},
+    {'$set' => {
+      'dataObj' => updated_waiver
+    }, '$currentDate' => { 'updated_at' => true }})
+  json waiver
 end
 
