@@ -25,7 +25,7 @@ postWhitelist = ['sessions', 'faq', 'profiles']
 getWhitelist = ['resources', 'faq', 'campinfo', 'opportunities', 'applications/volunteers', 'camp/session', 'camp/sessions']
 putWhiteList = ['profiles/activate', 'profiles/resetPassword', 'profiles/newPassword']
 before '*' do
-  puts "begining of before do"
+  puts "beginning of before do"
   if (postWhitelist.any? { |value| request.path_info.include? '/api/v1/' + value}) && (request.request_method == "POST")
     next
 
@@ -47,21 +47,26 @@ before '*' do
       @token = request.env['rack.request.form_hash'] || ''
       @token = @token['headers'] || ''
       @token = @token['x-token'] || ''
+      if !@token
+        halt(401, "No token received from browser request")
+      end
     end
 
-    if !@token
-      puts 'ha'
-      halt(401, "Invalid Token")
-    elsif !BSON::ObjectId.legal?(@token)
-      puts 'haha'
-      halt(401, "Invalid Token")
-    else
+    if @token
+      puts "Token exists, now to make sure it's valid"
       session = collection.find( {:_id => BSON::ObjectId(@token) }).first
       if session.nil?
-        puts 'hahaha'
+        puts "Session object from token is nil"
         halt(401, "Invalid Token")
-      else
-        @session = session
+      elsif !BSON::ObjectId.legal?(@token)
+        puts "Invalid Format For Token"
+        halt(401, "Invalid Token")
+      elsif request.path_info.include? '/admin/'
+        puts "Checking admin credentials"
+        @profile = database[:profiles].find(:email => session[:email]).first
+        if !@profile || @profile[:role] != 'admin'
+          halt(401, "Admin profile required")
+        end
       end
     end
   end
@@ -329,7 +334,7 @@ end
 
 # Volunteer endpoints
 
-get '/api/v1/applications/:type' do
+get '/api/v1/admin/applications/:type' do
   type = params[:type]
   applications = {
     submitted: {:icon => 'fa fa-edit', :apps => {}, :next => 'pending'},
@@ -362,7 +367,7 @@ get '/api/v1/applications/:type' do
     return {"applications" => applications, "type" => type}.to_json
 end
 
-get '/api/v1/applications/app/:id' do
+get '/api/v1/admin/applications/app/:id' do
   application = database[:applications].find({'_id' => BSON::ObjectId(params[:id])}).first
   if application && (application[:type] === 'camper' || application[:type] === 'volunteer')
     application[:camp_data] = database[:camp_sessions].find({'_id' => BSON::ObjectId(application[:camp])}).first
@@ -370,7 +375,7 @@ get '/api/v1/applications/app/:id' do
    json application
 end
 
-put '/api/v1/applications/status/:id' do
+put '/api/v1/admin/applications/status/:id' do
   id = params[:id]
   newParams = params['params']
   application = database[:applications].find({'_id' => BSON::ObjectId(id)}).first
@@ -388,7 +393,7 @@ put '/api/v1/applications/status/:id' do
 
 end
 
-delete '/api/v1/applications/:id' do
+delete '/api/v1/admin/applications/:id' do
   if database[:applications].find({:_id => BSON::ObjectId(params[:id])}).first
     database[:applications].delete_one( {_id: BSON::ObjectId(params[:id]) } )
     halt 200, "record deleted"
