@@ -25,7 +25,7 @@ postWhitelist = ['sessions', 'faq', 'profiles']
 getWhitelist = ['resources', 'faq', 'campinfo', 'opportunities', 'applications/volunteers', 'camp/session', 'camp/sessions']
 putWhiteList = ['profiles/activate', 'profiles/resetPassword', 'profiles/newPassword']
 before '*' do
-  puts "begining of before do"
+  puts "beginning of before do"
   if (postWhitelist.any? { |value| request.path_info.include? '/api/v1/' + value}) && (request.request_method == "POST")
     next
 
@@ -47,32 +47,26 @@ before '*' do
       @token = request.env['rack.request.form_hash'] || ''
       @token = @token['headers'] || ''
       @token = @token['x-token'] || ''
+      if !@token
+        halt(401, "No token received from browser request")
+      end
     end
 
-    if !@token
-      puts 'ha'
-      halt(401, "Invalid Token")
-    elsif !BSON::ObjectId.legal?(@token)
-      puts 'haha'
-      halt(401, "Invalid Token")
-    elsif request.path_info.include? 'admin'
-      puts "Checking admin credentials"
+    if @token
+      puts "Token exists, now to make sure it's valid"
       session = collection.find( {:_id => BSON::ObjectId(@token) }).first
       if session.nil?
-        halt(401, "Invalid Token in admin check")
-      else
+        puts "Session object from token is nil"
+        halt(401, "Invalid Token")
+      elsif !BSON::ObjectId.legal?(@token)
+        puts "Invalid Format For Token"
+        halt(401, "Invalid Token")
+      elsif request.path_info.include? '/admin/'
+        puts "Checking admin credentials"
         @profile = database[:profiles].find(:email => session[:email]).first
         if !@profile || @profile[:role] != 'admin'
           halt(401, "Admin profile required")
         end
-      end
-    else
-      session = collection.find( {:_id => BSON::ObjectId(@token) }).first
-      if session.nil?
-        puts 'hahaha'
-        halt(401, "Invalid Token")
-      else
-        @session = session
       end
     end
   end
