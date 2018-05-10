@@ -22,7 +22,7 @@ set :allow_headers, "content-type,if-modified-since, x-token"
 set :expose_headers, "location,link"
 
 postWhitelist = ['sessions', 'faq', 'profiles']
-getWhitelist = ['resources', 'faq', 'campinfo', 'opportunities', 'applications/volunteers', 'camp/session', 'camp/sessions']
+getWhitelist = ['resources', 'faq', 'campinfo', 'opportunities', 'applications/volunteers']
 putWhiteList = ['profiles/activate', 'profiles/resetPassword', 'profiles/newPassword']
 before '*' do
   puts "begining of before do"
