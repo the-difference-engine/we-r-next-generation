@@ -472,6 +472,11 @@ get '/api/v1/resources/:pagename' do
   end
 end
 
+put '/api/v1/resources/update/heroimage' do
+  puts 'ahhh', params['heroImage']
+  json database[:pageresources].update_one({'name' => 'homepage'}, {'$set' => {'dataObj.heroImage' => params['heroImage']}})
+end
+
 # faq endpoints
 
 get '/api/v1/faq' do
