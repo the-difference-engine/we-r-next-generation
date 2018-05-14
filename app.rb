@@ -543,7 +543,7 @@ end
 put '/api/v1/admin/waiver/:type/update' do
   content_type :json
   waiver_type = "waiver_" + params[:type]
-  updated_waiver = params['dataObj']
+  updated_waiver = params['data']
   waiver = database[:pageresources].update_one({:name => waiver_type},
     {'$set' => {
       'dataObj' => updated_waiver
