@@ -22,7 +22,7 @@ set :allow_headers, "content-type,if-modified-since, x-token"
 set :expose_headers, "location,link"
 
 postWhitelist = ['sessions', 'faq', 'profiles']
-getWhitelist = ['resources', 'faq', 'campinfo', 'opportunities', 'applications/volunteers']
+getWhitelist = ['resources', 'faq', 'campinfo', 'opportunities', 'applications/volunteers', 'successStories']
 putWhiteList = ['profiles/activate', 'profiles/resetPassword', 'profiles/newPassword']
 before '*' do
   puts "beginning of before do"
@@ -504,6 +504,15 @@ post '/api/v1/faq' do
   end
 end
 
+# Success Stories
+
+get '/api/v1/successStories' do
+  data = []
+  database[:success_stories].find.each do |info|
+    data << info.to_h
+  end
+  json data
+end
 
 # camp info endpoints
 
