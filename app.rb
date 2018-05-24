@@ -570,7 +570,6 @@ end
 post '/api/v1/faqEdit/:id' do
   content_type :json
   updatedFaq = params['params']
-  puts "UPDATED FAQ"
   database[:faqs].find(:_id => BSON::ObjectId(params[:id])).
     update_one('$set' => {
       'question' => updatedFaq['question'],
@@ -582,7 +581,6 @@ post '/api/v1/faqEdit/:id' do
 end
 
 delete '/api/v1/faqEdit/:id' do
-  puts "DELETE FAQ METHOD"
   if database[:faqs].find({:_id => BSON::ObjectId(params[:id])}).first
     database[:faqs].delete_one( {_id: BSON::ObjectId(params[:id]) } )
     halt 200, "faq deleted"
@@ -594,4 +592,38 @@ end
 post '/api/v1/faqAdd' do
   newFaq = database[:faqs].insert_one(params['params'])
   json newFaq.inserted_ids[0]
+end
+
+
+# success Edits
+
+get '/api/v1/successEdit/:_id' do
+  json database[:success_stories].find(:_id => BSON::ObjectId(params[:_id])).first
+end
+
+post '/api/v1/successEdit/:id' do
+  content_type :json
+  updatedStory = params['params']
+  database[:success_stories].find(:_id => BSON::ObjectId(params[:id])).
+    update_one('$set' => {
+      'about' => updatedStory['about'],
+      'learned' => updatedStory['learned'],
+      'image' => updatedStory['image'],
+    },)
+  updatedStory = database[:success_stories].find(:_id => BSON::ObjectId(params[:id])).first.to_h
+  json updatedStory
+end
+
+post '/api/v1/successAdd' do
+  newStory = database[:success_stories].insert_one(params['params'])
+  json newStory.inserted_ids[0]
+end
+
+delete '/api/v1/successEdit/:id' do
+  if database[:success_stories].find({:_id => BSON::ObjectId(params[:id])}).first
+    database[:success_stories].delete_one( {_id: BSON::ObjectId(params[:id]) } )
+    halt 200, "success story deleted"
+  else
+    halt 400, "could not find this success story in the database"
+  end
 end
