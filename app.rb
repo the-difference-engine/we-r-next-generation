@@ -570,7 +570,6 @@ end
 post '/api/v1/faqEdit/:id' do
   content_type :json
   updatedFaq = params['params']
-  puts "UPDATE FAQ METHOD"
   database[:faqs].find(:_id => BSON::ObjectId(params[:id])).
     update_one('$set' => {
       'question' => updatedFaq['question'],
@@ -582,7 +581,6 @@ post '/api/v1/faqEdit/:id' do
 end
 
 delete '/api/v1/faqEdit/:id' do
-  puts "DELETE FAQ METHOD"
   if database[:faqs].find({:_id => BSON::ObjectId(params[:id])}).first
     database[:faqs].delete_one( {_id: BSON::ObjectId(params[:id]) } )
     halt 200, "faq deleted"
@@ -606,7 +604,6 @@ end
 post '/api/v1/successEdit/:id' do
   content_type :json
   updatedStory = params['params']
-  puts "UPDATE SUCCESS STORY METHOD"
   database[:success_stories].find(:_id => BSON::ObjectId(params[:id])).
     update_one('$set' => {
       'about' => updatedStory['about'],
@@ -623,7 +620,6 @@ post '/api/v1/successAdd' do
 end
 
 delete '/api/v1/successEdit/:id' do
-  puts "DELETE SUCCESS STORY METHOD"
   if database[:success_stories].find({:_id => BSON::ObjectId(params[:id])}).first
     database[:success_stories].delete_one( {_id: BSON::ObjectId(params[:id]) } )
     halt 200, "success story deleted"
