@@ -1,5 +1,5 @@
-require 'bcrypt'
-
-def hashPassword (password)
-  return BCrypt::Password.create(password)
-end
+# require 'bcrypt'
+#
+# def hashPassword (password)
+#   return BCrypt::Password.create(password)
+# end

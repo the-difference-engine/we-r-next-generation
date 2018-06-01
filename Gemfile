@@ -15,7 +15,7 @@ gem 'bson'
 gem 'sinatra-cors'
 gem 'aws-sdk'
 gem 'digest'
-gem 'bcrypt'
+gem 'bcrypt', '~> 3.1.11', platforms: [:ruby, :x64_mingw, :mingw]
 
 # for tests
 group :test do
