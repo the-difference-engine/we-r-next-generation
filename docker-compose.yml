@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  web:
+    build: 
+      context: .
+    environment:
+      - MONGODB_URL=mongodb://qa-db-user-1:wrngpassword1@ds241895.mlab.com:41895/wernextgen-qa
+    volumes:
+      - .:/code
+    ports:
+      - 4567:4567

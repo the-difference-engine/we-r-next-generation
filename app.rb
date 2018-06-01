@@ -9,8 +9,7 @@ require_relative 'emailUtils'
 require_relative 'pswdSecurity'
 require 'mongo'
 require 'sinatra/cors'
-require 'digest'
-
+require 'pry'
 
 use Rack::PostBodyContentTypeParser
 # Set MONGODB_URL
@@ -22,7 +21,7 @@ set :allow_headers, "content-type,if-modified-since, x-token"
 set :expose_headers, "location,link"
 
 postWhitelist = ['sessions', 'faq', 'profiles']
-getWhitelist = ['resources', 'faq', 'campinfo', 'opportunities', 'applications/volunteers', 'successStories']
+getWhitelist = ['resources', 'faq', 'campinfo', 'opportunities', 'applications/volunteers', 'successStories', 'hello']
 putWhiteList = ['profiles/activate', 'profiles/resetPassword', 'profiles/newPassword']
 before '*' do
   puts "beginning of before do"
@@ -230,6 +229,7 @@ put '/api/v1/profiles/resetPassword' do
   if !profile || !profile[:active]
     halt 400, "there is no active profile with that email"
   end
+  # md5 = Digest::MD5.new
   md5 = Digest::MD5.new
   md5.update (email + DateTime.now().to_s)
   database[:profiles].update_one({:email => email}, {'$set' => {resetToken: md5.hexdigest}})
