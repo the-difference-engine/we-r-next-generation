@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 source 'https://rubygems.org'
-ruby '2.4.1'
+ruby '2.4.4'
 
 git_source(:github) {|repo_name| 'https://github.com/#{repo_name}' }
 
@@ -14,8 +14,9 @@ gem 'mongo'
 gem 'bson'
 gem 'sinatra-cors'
 gem 'aws-sdk'
-gem 'digest'
+# gem 'digest'
 gem 'bcrypt'
+gem 'pry'
 
 # for tests
 group :test do
