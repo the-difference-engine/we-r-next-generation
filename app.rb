@@ -274,7 +274,8 @@ post '/api/v1/applications' do
   json app.inserted_ids[0]
 end
 
-post '/api/v1/applications/waiver' do
+post '/api/v1/applications/waiver/:id' do
+  database[:sessions].update_one({'_id' => BSON::ObjectId(:id)}, {'$set' => {role: newParams['volunteer']}})
   app = database[:applications].insert_one(params['params']['application'])
   app_id = app.inserted_ids[0].to_s
   waiver = params['params']['waiver']
@@ -534,6 +535,19 @@ get '/api/v1/profile/:_id' do
     user = database[:profiles].find(:email => checkedSession[:email]).first
     json user
   end
+end
+
+post '/api/v1/profile/edit/:id' do
+  content_type :json
+  formData = params['params']
+  database[:profiles].find(:_id => BSON::ObjectId(params[:id])).
+    update_one('$set' => {
+      'full_name' => formData['full_name'],
+      'email' => formData['email'],
+      'password' => formData['password'],
+    },)
+  updatedInfo = database[:profiles].find(:_id => BSON::ObjectId(params[:id])).first.to_h
+  json updatedInfo
 end
 
 # opportunities endpoints
