@@ -478,8 +478,24 @@ get '/api/v1/resources/:pagename' do
 end
 
 put '/api/v1/resources/update/heroimage' do
-  puts 'ahhh', params['heroImage']
-  json database[:pageresources].update_one({'name' => 'homepage'}, {'$set' => {'dataObj.heroImage' => params['heroImage']}})
+  homePage = database[:pageresources].find({:name => 'homepage'}).first['dataObj']
+  heroHistory = homePage['heroHistory']
+  heroHistory.pop
+  heroHistory.unshift(params['heroImage'])
+  json database[:pageresources].update_one({'name' => 'homepage'}, {'$set' => {'dataObj.heroImage' => params['heroImage'], 'dataObj.heroHistory' => heroHistory}})
+end
+
+post '/api/v1/admin/partner/add' do
+  homePage = database[:pageresources].find({:name => 'homepage'}).first['dataObj']
+  partners = homePage['partners']
+  partners.push(params['partner'])
+  json database[:pageresources].update_one({'name' => 'homepage'}, '$set' => {'dataObj.partners' => partners})
+end
+post '/api/v1/admin/partner/delete' do
+  homePage = database[:pageresources].find({:name => 'homepage'}).first['dataObj']
+  partners = homePage['partners']
+  partners.delete_at(params['index'].to_i)
+  json database[:pageresources].update_one({'name' => 'homepage'}, '$set' => {'dataObj.partners' => partners})
 end
 
 # faq endpoints
