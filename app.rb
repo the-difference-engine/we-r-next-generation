@@ -107,6 +107,7 @@ post '/api/v1/profiles' do
     halt 400, "a profile with this email address already exists"
   else
     newProfile[:full_name] = newProfile.delete :name
+    newProfile.delete('password')
     newProfile['active'] = false
     profInDB = database[:profiles].insert_one(newProfile)
     url = 'http://localhost:8080/#/confirmation/' + profInDB.inserted_id.to_s
@@ -247,8 +248,9 @@ end
 put '/api/v1/profiles/newPassword' do
   profile = database[:profiles].find(:resetToken => params[:resetToken]).first
   if profile && profile[:active]
-  database[:profiles].update_one({:resetToken => params[:resetToken]}, {'$set' => {password: params[:password], resetToken: ''}})
-  json 200
+    password_hash = createPasswordHash(params[:password])
+    database[:profiles].update_one({:resetToken => params[:resetToken]}, {'$set' => {password_hash: password_hash, resetToken: ''}})
+    json 200
   else
     halt 400, "no profile found with that reset token"
   end
@@ -434,12 +436,12 @@ post '/api/v1/sessions' do
 
   if !results
     halt(401)
-  # elsif (results[:password] === (params[:password]) && results[:active] === true)
-  elsif (results[:password_hash] == createPasswordHash(params[:password]) && results[:active] === true)
+  elsif (checkPassword(results[:password_hash], params[:password]) && results[:active] === true)
     params.delete('password')
     token = database[:sessions].insert_one(params)
     data << token.inserted_id
     data << results
+    results.delete('password_hash')
   else
     halt(401)
   end
