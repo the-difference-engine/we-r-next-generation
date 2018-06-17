@@ -21,7 +21,7 @@ set :allow_methods, "GET,HEAD,POST,DELETE,PUT"
 set :allow_headers, "content-type,if-modified-since, x-token"
 set :expose_headers, "location,link"
 
-postWhitelist = ['sessions', 'faq', 'profiles']
+postWhitelist = ['sessions', 'faq', 'profiles', 'applications/waiver/:id']
 getWhitelist = ['resources', 'faq', 'campinfo', 'opportunities', 'applications/volunteers', 'successStories']
 putWhiteList = ['profiles/activate', 'profiles/resetPassword', 'profiles/newPassword']
 before '*' do
@@ -274,8 +274,7 @@ post '/api/v1/applications' do
   json app.inserted_ids[0]
 end
 
-post '/api/v1/applications/waiver/:id' do
-  database[:sessions].update_one({'_id' => BSON::ObjectId(:id)}, {'$set' => {role: newParams['volunteer']}})
+post '/api/v1/applications/waiver' do
   app = database[:applications].insert_one(params['params']['application'])
   app_id = app.inserted_ids[0].to_s
   waiver = params['params']['waiver']
