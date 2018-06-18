@@ -283,6 +283,33 @@ post '/api/v1/applications/waiver' do
   json app_id
 end
 
+get '/api/v1/profiles/applicationcheck/:id' do
+  data = []
+  database[:application].find.each do |app|
+    waiver = database[:waivers].find(:application => params[:id]).first
+    check = waiver[:id]
+    if app[:type] == 'volunteer' && :id == waiver[:id]
+      data.push('volunteer')
+    end
+    if app[:type] == 'camper' && :id == waiver[:id]
+      data.push('camper')
+    end
+    if app[:type] == 'partner' && :id == waiver[:id]
+      data.push('partner')
+    end
+  end
+  json data
+end
+
+database[:applications].find.each do |application|
+  if type === 'all'
+    status = application[:status].to_sym
+    camper = database[:waivers].find(:application => params[:id]).first
+    data = database[:waivers].find(:application => params[:id]).first
+    camper = database[:applications].find(:_id => BSON::ObjectId(params[:_id])).first
+  end
+end
+
 get '/api/v1/applications/:id/waiver' do
   if params[:id]
     data = database[:waivers].find(:application => params[:id]).first
