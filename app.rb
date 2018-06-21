@@ -108,12 +108,18 @@ post '/api/v1/profiles' do
     newProfile['active'] = false
     profInDB = database[:profiles].insert_one(newProfile)
     url = 'http://localhost:8080/#/confirmation/' + profInDB.inserted_id.to_s
-    sendEmail(newProfile['email'],
-              'no-reply@fakedomain.io',
-              'WeRNextGeneration - Sign Up Confirmation',
-              'dummy plain text',
-              "Follow the link below to activate your account: <br><br> <a href=\"#{url}\">Activate Account</a>"
-    )
+    begin
+      sendEmail(
+        newProfile['email'],
+        'no-reply@fakedomain.io',
+        'WeRNextGeneration - Sign Up Confirmation',
+        "Navigate to this link to activate your account: #{url}",
+        "Follow the link below to activate your account: <br><br> <a href=\"#{url}\">Activate Account</a>"
+      )
+    rescue Exception => e
+      puts "ERROR: #{e.message}"
+      puts "Error sending email to confirm sign-up for user #{newProfile['email']}"
+    end
     json 200
   end
 end
