@@ -20,7 +20,7 @@ def sendEmail(to, reply, subject, text, html = false)
       body: body,
       subject: {data: subject},
     },
-    source: 'sender@tde-wrng-dev.samdotcomwasntavailable.com',
+    source: 'donotreply@wernextgeneration.org',
     reply_to_addresses: [reply]
   })
 
