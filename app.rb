@@ -252,7 +252,7 @@ end
 put '/api/v1/profiles/:id' do
   idnumber = params.delete("id")
 
-  if !@profile && !@profile[:role] != 'superadmin'
+  if !@profile && @profile[:role] != 'superadmin'
     if !checkParameters(params, profileParams)
       halt 400, "the requirements were not met, did not post to database"
     end
