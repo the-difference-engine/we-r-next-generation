@@ -429,7 +429,7 @@ end
 
 post '/api/v1/sessions' do
   data = []
-  results = database[:profiles].find(:email => (params[:email])).first
+  results = database[:profiles].find(:email => /#{params[:email]}/i).first
 
   if !results
     halt(401)

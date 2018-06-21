@@ -20,8 +20,8 @@ services:
     ports:
       - 4567:4567
     environment:
-      MONGODB_URL: mongodb://mongo:27017/wernextgen-qa
-      # MONGODB_URL: mongodb://qa-db-user-1:wrngpassword1@ds241895.mlab.com:41895/wernextgen-qa
+      # MONGODB_URL: mongodb://mongo:27017/wernextgen-qa
+      MONGODB_URL: mongodb://qa-db-user-1:wrngpassword1@ds241895.mlab.com:41895/wernextgen-qa
   web:
     build:
       context: ../we-r-next-generation-web
