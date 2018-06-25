@@ -23,6 +23,7 @@ set :expose_headers, "location,link"
 postWhitelist = ['sessions', 'faq', 'profiles']
 getWhitelist = ['resources', 'faq', 'campinfo', 'opportunities', 'applications/volunteers', 'successStories', 'hello']
 putWhiteList = ['profiles/activate', 'profiles/resetPassword', 'profiles/newPassword']
+
 before '*' do
   puts "beginning of before do"
   if (postWhitelist.any? { |value| request.path_info.include? '/api/v1/' + value}) && (request.request_method == "POST")
@@ -54,6 +55,7 @@ before '*' do
     if @token
       puts "Token exists, now to make sure it's valid"
       session = collection.find( {:_id => BSON::ObjectId(@token) }).first
+      @profile = database[:profiles].find(:email => session[:email]).first
       if session.nil?
         puts "Session object from token is nil"
         halt(401, "Invalid Token")
@@ -62,7 +64,6 @@ before '*' do
         halt(401, "Invalid Token")
       elsif request.path_info.include? '/admin/'
         puts "Checking admin credentials"
-        @profile = database[:profiles].find(:email => session[:email]).first
         if !@profile || @profile[:role] != 'admin'
           halt(401, "Admin profile required")
         end
@@ -70,10 +71,6 @@ before '*' do
     end
   end
 end
-
-
-
-
 
 # puts database.collection_names
 get '/api/v1/hello' do
@@ -96,7 +93,6 @@ end
 profileParams = ['full_name', 'email', 'address', 'phone_number', 'signature', 'camp_id', 'status', 'bio', 'user_name', 'password']
 signupParams = ['name', 'email', 'password', 'password_hash']
 
-
 post '/api/v1/profiles' do
   newProfile = params
   newProfile['password_hash'] = createPasswordHash(params['password'])
@@ -106,8 +102,8 @@ post '/api/v1/profiles' do
     halt 400, "a profile with this email address already exists"
   else
     newProfile[:full_name] = newProfile.delete :name
+    newProfile['active'] = true
     newProfile.delete('password')
-    newProfile['active'] = false
     profInDB = database[:profiles].insert_one(newProfile)
     url = 'http://localhost:8080/#/confirmation/' + profInDB.inserted_id.to_s
     sendEmail(newProfile['email'],
@@ -258,9 +254,13 @@ end
 
 put '/api/v1/profiles/:id' do
   idnumber = params.delete("id")
-  if !checkParameters(params, profileParams)
-    halt 400, "the requirements were not met, did not post to database"
+
+  if !@profile || @profile[:role] != 'superadmin'
+    if !checkParameters(params, profileParams)
+      halt 400, "the requirements were not met, did not post to database"
+    end
   end
+
   json database[:profiles].update_one(
     {'_id' => BSON::ObjectId(idnumber)}, {'$set' => params }
   )
