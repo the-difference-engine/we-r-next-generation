@@ -65,7 +65,7 @@ before '*' do
       elsif request.path_info.include? '/admin/'
         puts "Checking admin credentials"
         if !@profile || @profile[:role] != 'admin'
-          halt(401, "Admin profile required")
+          halt(401, "Minimum admin profile required")
         end
       end
     end
@@ -126,8 +126,8 @@ get '/api/v1/profiles/:profile_id' do
   profile_id = params[:profile_id]
   obj_id = BSON::ObjectId(profile_id)
   profile_table = database[:profiles]
-  query_reults = profile_table.find(:_id => obj_id)
-  match = query_reults.first
+  query_results = profile_table.find(:_id => obj_id)
+  match = query_results.first
   json(match.to_h)
 
 end
@@ -167,14 +167,14 @@ get '/api/v1/camp/sessions', :provides => :json do
   json(data)
 end
 
-post '/api/v1/camp/session/create' do
+post '/api/v1/admin/camp/session/create' do
   newCamp = params['params']
   createdCamp = database[:camp_sessions].insert_one(newCamp)
   json createdCamp
 end
 
 
-put '/api/v1/camp/session/:id/update' do
+put '/api/v1/admin/camp/session/:id/update' do
   content_type :json
   updatedCamp = params['params']
   database[:camp_sessions].find(:_id => BSON::ObjectId(params[:id])).
@@ -192,7 +192,7 @@ put '/api/v1/camp/session/:id/update' do
 end
 
 # get list of applicants related to the camp session id (string)
-get '/api/v1/camp/session/:id/applicants', :provides => :json do
+get '/api/v1/admin/camp/session/:id/applicants', :provides => :json do
   data = []
   if params[:id]
     database[:applications].find(:camp => params[:id]).each do |applicant|
@@ -590,11 +590,11 @@ end
 
 # faq edits
 
-get '/api/v1/faqEdit/:_id' do
+get '/api/v1/admin/faqEdit/:_id' do
   json database[:faqs].find(:_id => BSON::ObjectId(params[:_id])).first
 end
 
-post '/api/v1/faqEdit/:id' do
+post '/api/v1/admin/faqEdit/:id' do
   content_type :json
   updatedFaq = params['params']
   database[:faqs].find(:_id => BSON::ObjectId(params[:id])).
@@ -607,7 +607,7 @@ post '/api/v1/faqEdit/:id' do
   json updatedFaq
 end
 
-delete '/api/v1/faqEdit/:id' do
+delete '/api/v1/admin/faqEdit/:id' do
   if database[:faqs].find({:_id => BSON::ObjectId(params[:id])}).first
     database[:faqs].delete_one( {_id: BSON::ObjectId(params[:id]) } )
     halt 200, "faq deleted"
@@ -616,7 +616,7 @@ delete '/api/v1/faqEdit/:id' do
   end
 end
 
-post '/api/v1/faqAdd' do
+post '/api/v1/admin/faqAdd' do
   newFaq = database[:faqs].insert_one(params['params'])
   json newFaq.inserted_ids[0]
 end
@@ -624,11 +624,11 @@ end
 
 # success Edits
 
-get '/api/v1/successEdit/:_id' do
+get '/api/v1/admin/successEdit/:_id' do
   json database[:success_stories].find(:_id => BSON::ObjectId(params[:_id])).first
 end
 
-post '/api/v1/successEdit/:id' do
+post '/api/v1/admin/successEdit/:id' do
   content_type :json
   updatedStory = params['params']
   database[:success_stories].find(:_id => BSON::ObjectId(params[:id])).
@@ -636,17 +636,18 @@ post '/api/v1/successEdit/:id' do
       'about' => updatedStory['about'],
       'learned' => updatedStory['learned'],
       'image' => updatedStory['image'],
+      'artwork' => updatedStory['artwork'],
     },)
   updatedStory = database[:success_stories].find(:_id => BSON::ObjectId(params[:id])).first.to_h
   json updatedStory
 end
 
-post '/api/v1/successAdd' do
+post '/api/v1/admin/successAdd' do
   newStory = database[:success_stories].insert_one(params['params'])
   json newStory.inserted_ids[0]
 end
 
-delete '/api/v1/successEdit/:id' do
+delete '/api/v1/admin/successEdit/:id' do
   if database[:success_stories].find({:_id => BSON::ObjectId(params[:id])}).first
     database[:success_stories].delete_one( {_id: BSON::ObjectId(params[:id]) } )
     halt 200, "success story deleted"
