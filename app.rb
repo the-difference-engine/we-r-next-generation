@@ -129,7 +129,6 @@ get '/api/v1/profiles/:profile_id' do
   query_reults = profile_table.find(:_id => obj_id)
   match = query_reults.first
   json(match.to_h)
-
 end
 
 # get all
@@ -224,7 +223,6 @@ put '/api/v1/profiles/activate/:_id' do
   else
     halt 400, "profile ID invalid, could not activate account"
   end
-
 end
 
 put '/api/v1/profiles/resetPassword' do
@@ -233,7 +231,6 @@ put '/api/v1/profiles/resetPassword' do
   if !profile || !profile[:active]
     halt 400, "there is no active profile with that email"
   end
-  # md5 = Digest::MD5.new
   md5 = Digest::MD5.new
   md5.update (email + DateTime.now().to_s)
   database[:profiles].update_one({:email => email}, {'$set' => {resetToken: md5.hexdigest}})
@@ -275,7 +272,6 @@ end
 delete '/api/v1/profiles/:_id' do
 
   database[:profiles].delete_one( {_id: BSON::ObjectId(params[:_id]) } )
-
 end
 
 post '/api/v1/applications' do
@@ -300,46 +296,6 @@ get '/api/v1/applications/:id/waiver' do
     json({msg: 'Error: Waiver Not Found'})
   end
 end
-
-# Camp endpoints !!!!! this is no longer needed, but this code can be used for updating camps maybe?
-# get '/api/v1/applications/camps' do
-#   data = []
-#   database[:camps].find.each do |document|
-#     data << document.to_h
-#   end
-#   json data
-# end
-#
-# campParams = ['full_name', 'email', 'address', 'phone_number', 'signature', 'camp_id', 'status', 'bio']
-#
-# post '/api/v1/applications/camps' do
-#   if !checkParameters(params, campParams)
-#     halt 400, "the requirements were not met, did not post to database"
-#   end
-#   json database[:camps].insert_one(params)
-# end
-#
-# get '/api/v1/applications/camps/:_id' do
-#
-#   json database[:camps].find(:_id => BSON::ObjectId(params[:_id])).first
-#
-# end
-#
-# put '/api/v1/applications/camps/:_id' do
-#   id_number = params.delete("_id")
-#   if !checkParameters(params, campParams)
-#     halt 400, "the requirements were not met, did not post to database"
-#   end
-#
-#   json database[:camps].update_one( { '_id' => BSON::ObjectId(id_number) },   { '$set' => params})
-#
-# end
-#
-# delete '/api/v1/applications/camps/:_id' do
-#
-#   database[:camps].delete_one( {_id: BSON::ObjectId(params[:_id]) } )
-#
-# end
 
 # Volunteer endpoints
 
@@ -399,7 +355,6 @@ put '/api/v1/admin/applications/status/:id' do
   else
     halt 400, "could not find this application in the database"
   end
-
 end
 
 delete '/api/v1/admin/applications/:id' do
@@ -411,34 +366,11 @@ delete '/api/v1/admin/applications/:id' do
   end
 end
 
-# get '/api/v1/applications/volunteers/:_id' do
-#   json database[:volunteers].find(:_id => BSON::ObjectId(params[:_id])).first
-# end
-
-
-# post '/api/v1/applications/volunteers' do
-#   if !checkParameters(params, profileParams)
-#     halt 400, "the requirements were not met, did not post to database"
-#   end
-#   json database[:volunteers].insert_one(params)
-# end
-#
-
-# camp experience sessions endpoints
-
-# get '/api/v1/camp/session/all' do
-#   data = []
-#   database[:camps].find.each do |document|
-#     data << document.to_h
-#   end
-#   json data
-# end
-
 #sessions endpoints
 
 post '/api/v1/sessions' do
   data = []
-  results = database[:profiles].find(:email => /#{params[:email]}/i).first
+  results = database[:profiles].find({ '$text' => { '$search' => "\"#{params[:email]}\"", '$caseSensitive' => false } } ).first
 
   if !results
     halt(401)
@@ -502,6 +434,7 @@ post '/api/v1/admin/partner/add' do
   partners.push(params['partner'])
   json database[:pageresources].update_one({'name' => 'homepage'}, '$set' => {'dataObj.partners' => partners})
 end
+
 post '/api/v1/admin/partner/delete' do
   homePage = database[:pageresources].find({:name => 'homepage'}).first['dataObj']
   partners = homePage['partners']
@@ -573,7 +506,6 @@ get '/api/v1/opportunities' do
   json data
 end
 
-
 # administrative edit endpoints
 
 put '/api/v1/admin/waiver/:type/update' do
@@ -586,7 +518,6 @@ put '/api/v1/admin/waiver/:type/update' do
     }, '$currentDate' => { 'updated_at' => true }})
   json waiver
 end
-
 
 # faq edits
 
@@ -620,7 +551,6 @@ post '/api/v1/faqAdd' do
   newFaq = database[:faqs].insert_one(params['params'])
   json newFaq.inserted_ids[0]
 end
-
 
 # success Edits
 
