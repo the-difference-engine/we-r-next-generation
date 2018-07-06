@@ -633,6 +633,7 @@ post '/api/v1/admin/successEdit/:id' do
   updatedStory = params['params']
   database[:success_stories].find(:_id => BSON::ObjectId(params[:id])).
     update_one('$set' => {
+      'name' => updatedStory['name'],
       'about' => updatedStory['about'],
       'learned' => updatedStory['learned'],
       'image' => updatedStory['image'],
