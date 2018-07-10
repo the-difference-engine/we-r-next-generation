@@ -106,18 +106,13 @@ post '/api/v1/profiles' do
     newProfile.delete('password')
     profInDB = database[:profiles].insert_one(newProfile)
     url = 'http://localhost:8080/#/confirmation/' + profInDB.inserted_id.to_s
-    begin
-      sendEmail(
-        newProfile['email'],
-        'no-reply@fakedomain.io',
-        'WeRNextGeneration - Sign Up Confirmation',
-        "Navigate to this link to activate your account: #{url}",
-        "Follow the link below to activate your account: <br><br> <a href=\"#{url}\">Activate Account</a>"
-      )
-    rescue Exception => e
-      puts "ERROR: #{e.message}"
-      puts "Error sending email to confirm sign-up for user #{newProfile['email']}"
-    end
+    sendEmail(
+      newProfile['email'],
+      'no-reply@wernextgeneration.org',
+      'WeRNextGeneration - Sign Up Confirmation',
+      "Navigate to this link to activate your account: #{url}",
+      "Follow the link below to activate your account: <br><br> <a href=\"#{url}\">Activate Account</a>"
+    )
     json 200
   end
 end
@@ -235,11 +230,12 @@ put '/api/v1/profiles/resetPassword' do
   md5.update (email + DateTime.now().to_s)
   database[:profiles].update_one({:email => email}, {'$set' => {resetToken: md5.hexdigest}})
   url = 'http://localhost:8080/#/newPassword/' + md5.hexdigest
-  sendEmail(email,
-            'no-reply@fakedomain.io',
-            'WeRNextGeneration - Password Reset',
-            'dummy plain text',
-            "Follow the link below to reset your password: <br><br> <a href=\"#{url}\">Reset Password</a>"
+  sendEmail(
+    email,
+    'no-reply@wernextgeneration.org',
+    'WeRNextGeneration - Password Reset',
+    'Click on the following link to reset your password: #{url}',
+    "Follow the link below to reset your password: <br><br> <a href=\"#{url}\">Reset Password</a>"
   )
   json 200
 end
