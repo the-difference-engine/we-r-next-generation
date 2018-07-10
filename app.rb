@@ -64,7 +64,7 @@ before '*' do
         halt(401, "Invalid Token")
       elsif request.path_info.include? '/admin/'
         puts "Checking admin credentials"
-        if !@profile || @profile[:role] != 'admin'
+        if !@profile || !['admin', 'superadmin'].include?(@profile[:role])
           halt(401, "Minimum admin profile required")
         end
       end
