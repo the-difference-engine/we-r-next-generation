@@ -9,8 +9,7 @@ require_relative 'emailUtils'
 require_relative 'pswdSecurity'
 require 'mongo'
 require 'sinatra/cors'
-require 'digest'
-
+require 'pry'
 
 use Rack::PostBodyContentTypeParser
 # Set MONGODB_URL
@@ -22,8 +21,9 @@ set :allow_headers, "content-type,if-modified-since, x-token"
 set :expose_headers, "location,link"
 
 postWhitelist = ['sessions', 'faq', 'profiles', 'applications/waiver/:id']
-getWhitelist = ['resources', 'faq', 'campinfo', 'opportunities', 'applications/volunteers', 'successStories']
+getWhitelist = ['resources', 'faq', 'campinfo', 'opportunities', 'applications/volunteers', 'successStories', 'hello']
 putWhiteList = ['profiles/activate', 'profiles/resetPassword', 'profiles/newPassword']
+
 before '*' do
   puts "beginning of before do"
   if (postWhitelist.any? { |value| request.path_info.include? '/api/v1/' + value}) && (request.request_method == "POST")
@@ -55,6 +55,7 @@ before '*' do
     if @token
       puts "Token exists, now to make sure it's valid"
       session = collection.find( {:_id => BSON::ObjectId(@token) }).first
+      @profile = database[:profiles].find(:email => session[:email]).first
       if session.nil?
         puts "Session object from token is nil"
         halt(401, "Invalid Token")
@@ -63,18 +64,13 @@ before '*' do
         halt(401, "Invalid Token")
       elsif request.path_info.include? '/admin/'
         puts "Checking admin credentials"
-        @profile = database[:profiles].find(:email => session[:email]).first
         if !@profile || @profile[:role] != 'admin'
-          halt(401, "Admin profile required")
+          halt(401, "Minimum admin profile required")
         end
       end
     end
   end
 end
-
-
-
-
 
 # puts database.collection_names
 get '/api/v1/hello' do
@@ -95,26 +91,33 @@ end
 # post new
 
 profileParams = ['full_name', 'email', 'address', 'phone_number', 'signature', 'camp_id', 'status', 'bio', 'user_name', 'password']
-signupParams = ['name', 'email', 'password']
-
+signupParams = ['name', 'email', 'password', 'password_hash']
 
 post '/api/v1/profiles' do
   newProfile = params
+  newProfile['password_hash'] = createPasswordHash(params['password'])
   if !checkSignupParameters(newProfile, signupParams)
     halt 400, "the requirements were not met, did not post to database"
   elsif database[:profiles].find(:email => newProfile['email']).first
     halt 400, "a profile with this email address already exists"
   else
     newProfile[:full_name] = newProfile.delete :name
-    newProfile['active'] = false
+    newProfile['active'] = true
+    newProfile.delete('password')
     profInDB = database[:profiles].insert_one(newProfile)
     url = 'http://localhost:8080/#/confirmation/' + profInDB.inserted_id.to_s
-    sendEmail(newProfile['email'],
-              'no-reply@fakedomain.io',
-              'WeRNextGeneration - Sign Up Confirmation',
-              'dummy plain text',
-              "Follow the link below to activate your account: <br><br> <a href=\"#{url}\">Activate Account</a>"
-    )
+    begin
+      sendEmail(
+        newProfile['email'],
+        'no-reply@fakedomain.io',
+        'WeRNextGeneration - Sign Up Confirmation',
+        "Navigate to this link to activate your account: #{url}",
+        "Follow the link below to activate your account: <br><br> <a href=\"#{url}\">Activate Account</a>"
+      )
+    rescue Exception => e
+      puts "ERROR: #{e.message}"
+      puts "Error sending email to confirm sign-up for user #{newProfile['email']}"
+    end
     json 200
   end
 end
@@ -123,8 +126,8 @@ get '/api/v1/profiles/:profile_id' do
   profile_id = params[:profile_id]
   obj_id = BSON::ObjectId(profile_id)
   profile_table = database[:profiles]
-  query_reults = profile_table.find(:_id => obj_id)
-  match = query_reults.first
+  query_results = profile_table.find(:_id => obj_id)
+  match = query_results.first
   json(match.to_h)
 
 end
@@ -164,14 +167,14 @@ get '/api/v1/camp/sessions', :provides => :json do
   json(data)
 end
 
-post '/api/v1/camp/session/create' do
+post '/api/v1/admin/camp/session/create' do
   newCamp = params['params']
   createdCamp = database[:camp_sessions].insert_one(newCamp)
   json createdCamp
 end
 
 
-put '/api/v1/camp/session/:id/update' do
+put '/api/v1/admin/camp/session/:id/update' do
   content_type :json
   updatedCamp = params['params']
   database[:camp_sessions].find(:_id => BSON::ObjectId(params[:id])).
@@ -189,7 +192,7 @@ put '/api/v1/camp/session/:id/update' do
 end
 
 # get list of applicants related to the camp session id (string)
-get '/api/v1/camp/session/:id/applicants', :provides => :json do
+get '/api/v1/admin/camp/session/:id/applicants', :provides => :json do
   data = []
   if params[:id]
     database[:applications].find(:camp => params[:id]).each do |applicant|
@@ -230,6 +233,7 @@ put '/api/v1/profiles/resetPassword' do
   if !profile || !profile[:active]
     halt 400, "there is no active profile with that email"
   end
+  # md5 = Digest::MD5.new
   md5 = Digest::MD5.new
   md5.update (email + DateTime.now().to_s)
   database[:profiles].update_one({:email => email}, {'$set' => {resetToken: md5.hexdigest}})
@@ -246,8 +250,9 @@ end
 put '/api/v1/profiles/newPassword' do
   profile = database[:profiles].find(:resetToken => params[:resetToken]).first
   if profile && profile[:active]
-  database[:profiles].update_one({:resetToken => params[:resetToken]}, {'$set' => {password: params[:password], resetToken: ''}})
-  json 200
+    password_hash = createPasswordHash(params[:password])
+    database[:profiles].update_one({:resetToken => params[:resetToken]}, {'$set' => {password_hash: password_hash, resetToken: ''}})
+    json 200
   else
     halt 400, "no profile found with that reset token"
   end
@@ -255,9 +260,13 @@ end
 
 put '/api/v1/profiles/:id' do
   idnumber = params.delete("id")
-  if !checkParameters(params, profileParams)
-    halt 400, "the requirements were not met, did not post to database"
+
+  if !@profile || @profile[:role] != 'superadmin'
+    if !checkParameters(params, profileParams)
+      halt 400, "the requirements were not met, did not post to database"
+    end
   end
+
   json database[:profiles].update_one(
     {'_id' => BSON::ObjectId(idnumber)}, {'$set' => params }
   )
@@ -456,14 +465,16 @@ end
 
 post '/api/v1/sessions' do
   data = []
-  results = database[:profiles].find(:email => (params[:email])).first
+  results = database[:profiles].find(:email => /#{params[:email]}/i).first
 
   if !results
     halt(401)
-  elsif (results[:password] === (params[:password]) && results[:active] === true)
+  elsif (checkPassword(results[:password_hash], params[:password]) && results[:active] === true)
+    params.delete('password')
     token = database[:sessions].insert_one(params)
     data << token.inserted_id
     data << results
+    results.delete('password_hash')
   else
     halt(401)
   end
@@ -505,8 +516,24 @@ get '/api/v1/resources/:pagename' do
 end
 
 put '/api/v1/resources/update/heroimage' do
-  puts 'ahhh', params['heroImage']
-  json database[:pageresources].update_one({'name' => 'homepage'}, {'$set' => {'dataObj.heroImage' => params['heroImage']}})
+  homePage = database[:pageresources].find({:name => 'homepage'}).first['dataObj']
+  heroHistory = homePage['heroHistory']
+  heroHistory.pop
+  heroHistory.unshift(params['heroImage'])
+  json database[:pageresources].update_one({'name' => 'homepage'}, {'$set' => {'dataObj.heroImage' => params['heroImage'], 'dataObj.heroHistory' => heroHistory}})
+end
+
+post '/api/v1/admin/partner/add' do
+  homePage = database[:pageresources].find({:name => 'homepage'}).first['dataObj']
+  partners = homePage['partners']
+  partners.push(params['partner'])
+  json database[:pageresources].update_one({'name' => 'homepage'}, '$set' => {'dataObj.partners' => partners})
+end
+post '/api/v1/admin/partner/delete' do
+  homePage = database[:pageresources].find({:name => 'homepage'}).first['dataObj']
+  partners = homePage['partners']
+  partners.delete_at(params['index'].to_i)
+  json database[:pageresources].update_one({'name' => 'homepage'}, '$set' => {'dataObj.partners' => partners})
 end
 
 # faq endpoints
@@ -603,11 +630,11 @@ end
 
 # faq edits
 
-get '/api/v1/faqEdit/:_id' do
+get '/api/v1/admin/faqEdit/:_id' do
   json database[:faqs].find(:_id => BSON::ObjectId(params[:_id])).first
 end
 
-post '/api/v1/faqEdit/:id' do
+post '/api/v1/admin/faqEdit/:id' do
   content_type :json
   updatedFaq = params['params']
   database[:faqs].find(:_id => BSON::ObjectId(params[:id])).
@@ -620,7 +647,7 @@ post '/api/v1/faqEdit/:id' do
   json updatedFaq
 end
 
-delete '/api/v1/faqEdit/:id' do
+delete '/api/v1/admin/faqEdit/:id' do
   if database[:faqs].find({:_id => BSON::ObjectId(params[:id])}).first
     database[:faqs].delete_one( {_id: BSON::ObjectId(params[:id]) } )
     halt 200, "faq deleted"
@@ -629,7 +656,7 @@ delete '/api/v1/faqEdit/:id' do
   end
 end
 
-post '/api/v1/faqAdd' do
+post '/api/v1/admin/faqAdd' do
   newFaq = database[:faqs].insert_one(params['params'])
   json newFaq.inserted_ids[0]
 end
@@ -637,29 +664,31 @@ end
 
 # success Edits
 
-get '/api/v1/successEdit/:_id' do
+get '/api/v1/admin/successEdit/:_id' do
   json database[:success_stories].find(:_id => BSON::ObjectId(params[:_id])).first
 end
 
-post '/api/v1/successEdit/:id' do
+post '/api/v1/admin/successEdit/:id' do
   content_type :json
   updatedStory = params['params']
   database[:success_stories].find(:_id => BSON::ObjectId(params[:id])).
     update_one('$set' => {
+      'name' => updatedStory['name'],
       'about' => updatedStory['about'],
       'learned' => updatedStory['learned'],
       'image' => updatedStory['image'],
+      'artwork' => updatedStory['artwork'],
     },)
   updatedStory = database[:success_stories].find(:_id => BSON::ObjectId(params[:id])).first.to_h
   json updatedStory
 end
 
-post '/api/v1/successAdd' do
+post '/api/v1/admin/successAdd' do
   newStory = database[:success_stories].insert_one(params['params'])
   json newStory.inserted_ids[0]
 end
 
-delete '/api/v1/successEdit/:id' do
+delete '/api/v1/admin/successEdit/:id' do
   if database[:success_stories].find({:_id => BSON::ObjectId(params[:id])}).first
     database[:success_stories].delete_one( {_id: BSON::ObjectId(params[:id]) } )
     halt 200, "success story deleted"
