@@ -19,6 +19,7 @@ This is part of the We-R-Next-Generation web application. It is written in Ruby 
 - At the command line, run `heroku login` and use the Heroku credentials in the .env file that was provided by TDE. Make sure to update those credentials if you change them in the web interface.
 - On your first deploy, you will need to run `heroku git:remote -a wrng`
 - To deploy the application from a specific branch, run `git push heroku <branch_name>:master`.
+- If the database is migrated, you must run the following command against it to create a necessary index: `database[:profiles].indexes.create_one( { :email => 'text' } )`
 
 [3]: https://dashboard.heroku.com/
 [4]: https://devcenter.heroku.com/articles/heroku-cli
