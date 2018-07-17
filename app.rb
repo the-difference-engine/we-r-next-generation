@@ -25,12 +25,10 @@ getWhitelist = ['resources', 'faq', 'campinfo', 'opportunities', 'applications/v
 putWhiteList = ['profiles/activate', 'profiles/resetPassword', 'profiles/newPassword']
 
 before '*' do
-  puts "beginning of before do"
   if (postWhitelist.any? { |value| request.path_info.include? '/api/v1/' + value}) && (request.request_method == "POST")
     next
 
   elsif (getWhitelist.any? { |value| request.path_info.include? '/api/v1/' + value}) && (request.request_method == "GET")
-    puts "Get White Listed"
     next
 
   elsif (putWhiteList.any? { |value| request.path_info.include? '/api/v1/' + value}) && (request.request_method == "PUT")
@@ -40,30 +38,24 @@ before '*' do
     next
 
   else
-    puts "Checking Token"
     collection = database[:sessions]
     @token = request.env['HTTP_X_TOKEN']
     if !@token
       @token = request.env['rack.request.form_hash'] || ''
       @token = @token['headers'] || ''
       @token = @token['x-token'] || ''
-      if !@token
-        halt(401, "No token received from browser request")
-      end
     end
 
-    if @token
-      puts "Token exists, now to make sure it's valid"
+    if (@token.nil? || @token.empty?)
+      halt(401, "No token received from browser request")
+    else
       session = collection.find( {:_id => BSON::ObjectId(@token) }).first
       @profile = database[:profiles].find(:email => session[:email]).first
       if session.nil?
-        puts "Session object from token is nil"
         halt(401, "Invalid Token")
       elsif !BSON::ObjectId.legal?(@token)
-        puts "Invalid Format For Token"
         halt(401, "Invalid Token")
       elsif request.path_info.include? '/admin/'
-        puts "Checking admin credentials"
         if !@profile || !['admin', 'superadmin'].include?(@profile[:role])
           halt(401, "Minimum admin profile required")
         end
@@ -129,8 +121,8 @@ end
 # get all
 get '/api/v1/profiles' do
   data=[]
-  database[:profiles].find.each do |people|
-    data << people.to_h
+  database[:profiles].find.each do |profile|
+    data << profile.to_h
   end
   json(data)
 end
