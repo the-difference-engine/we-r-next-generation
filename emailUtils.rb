@@ -11,18 +11,22 @@ def sendEmail(to, reply, subject, text, html = false)
     body['text'] = {data: text}
   end
 
-  a = ses.send_email({
-    destination: {
-      to_addresses: [to]
-    },
-    message: {
-      body: body,
-      subject: {data: subject},
-    },
-    source: 'no-reply@wernextgeneration.org',
-    reply_to_addresses: [reply]
-  })
+  begin
+    a = ses.send_email({
+      destination: {
+        to_addresses: [to]
+      },
+      message: {
+        body: body,
+        subject: {data: subject},
+      },
+      source: 'no-reply@wernextgeneration.org',
+      reply_to_addresses: [reply]
+    })
 
-  a.data.message_id
+    a.data.message_id
+  rescue
+    puts "ERROR: Failed to send email"
+  end
 
 end

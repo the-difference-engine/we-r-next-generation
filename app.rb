@@ -17,14 +17,14 @@ database = Mongo::Client.new(ENV["MONGODB_URL"])
 
 set :allow_origin, "*"
 set :allow_methods, "GET,HEAD,POST,DELETE,PUT"
-set :allow_headers, "content-type,if-modified-since, x-token"
+set :allow_headers, "content-type,if-modified-since,x-token"
 set :expose_headers, "location,link"
 
-postWhitelist = ['sessions', 'faq', 'profiles', 'applications/waiver/:id']
+postWhitelist = ['sessions', 'faq', 'profiles', 'applications/waiver/:id', 'camp/session/create']
 getWhitelist = ['resources', 'faq', 'campinfo', 'opportunities', 'applications/volunteers', 'successStories', 'hello']
 putWhiteList = ['profiles/activate', 'profiles/resetPassword', 'profiles/newPassword']
 
-before '*' do
+before '*' do 
   if (postWhitelist.any? { |value| request.path_info.include? '/api/v1/' + value}) && (request.request_method == "POST")
     next
 
@@ -45,7 +45,7 @@ before '*' do
       @token = @token['headers'] || ''
       @token = @token['x-token'] || ''
     end
-
+ 
     if (@token.nil? || @token.empty?)
       halt(401, "No token received from browser request")
     else
@@ -139,7 +139,7 @@ get '/api/v1/camp/session/get' do
 end
 
 # get all, sort by Field Name, default = date_start DESC
-get '/api/v1/camp/sessions', :provides => :json do
+get '/api/v1/camp/sessions' do
   data=[]
   # if params[:field_name]
   #   database[:camps].find.order(params[:field_name] + " " + params[:order]).each do |camp|
