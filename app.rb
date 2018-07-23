@@ -69,16 +69,6 @@ get '/api/v1/hello' do
   json({msg: 'hello world! im working'})
 end
 
-post '/api/v1/hello' do
-  if !checkParameters(params, ['name'])
-    halt 400
-  end
-  name = params[:name]
-  record = {msg: "hello #{name}!"}
-  database[:bob].insert_one(record)
-  json(record)
-end
-
 # Profile endpoints
 # post new
 
@@ -141,14 +131,8 @@ end
 # get all, sort by Field Name, default = date_start DESC
 get '/api/v1/camp/sessions' do
   data=[]
-  # if params[:field_name]
-  #   database[:camps].find.order(params[:field_name] + " " + params[:order]).each do |camp|
-  #     data << camp.to_h
-  #   end
-  # else
   database[:camp_sessions].find.each do |camp|
     data << camp.to_h
-    # end
   end
   json(data)
 end
@@ -426,7 +410,7 @@ end
 # webpage resources
 
 get '/api/v1/resources/:pagename' do
-  result = database[:pageresources].find(:name => params[:pagename])
+  result = database[:page_resources].find(:name => params[:pagename])
 
   if result.count.zero?
     json 0
@@ -436,25 +420,25 @@ get '/api/v1/resources/:pagename' do
 end
 
 put '/api/v1/resources/update/heroimage' do
-  homePage = database[:pageresources].find({:name => 'homepage'}).first['dataObj']
+  homePage = database[:page_resources].find({:name => 'homepage'}).first['dataObj']
   heroHistory = homePage['heroHistory']
   heroHistory.pop
   heroHistory.unshift(params['heroImage'])
-  json database[:pageresources].update_one({'name' => 'homepage'}, {'$set' => {'dataObj.heroImage' => params['heroImage'], 'dataObj.heroHistory' => heroHistory}})
+  json database[:page_resources].update_one({'name' => 'homepage'}, {'$set' => {'dataObj.heroImage' => params['heroImage'], 'dataObj.heroHistory' => heroHistory}})
 end
 
 post '/api/v1/admin/partner/add' do
-  homePage = database[:pageresources].find({:name => 'homepage'}).first['dataObj']
+  homePage = database[:page_resources].find({:name => 'homepage'}).first['dataObj']
   partners = homePage['partners']
   partners.push(params['partner'])
-  json database[:pageresources].update_one({'name' => 'homepage'}, '$set' => {'dataObj.partners' => partners})
+  json database[:page_resources].update_one({'name' => 'homepage'}, '$set' => {'dataObj.partners' => partners})
 end
 
 post '/api/v1/admin/partner/delete' do
-  homePage = database[:pageresources].find({:name => 'homepage'}).first['dataObj']
+  homePage = database[:page_resources].find({:name => 'homepage'}).first['dataObj']
   partners = homePage['partners']
   partners.delete_at(params['index'].to_i)
-  json database[:pageresources].update_one({'name' => 'homepage'}, '$set' => {'dataObj.partners' => partners})
+  json database[:page_resources].update_one({'name' => 'homepage'}, '$set' => {'dataObj.partners' => partners})
 end
 
 # faq endpoints
@@ -493,7 +477,7 @@ end
 
 get '/api/v1/campinfo' do
   data = []
-  database[:campinfo].find.each do |info|
+  database[:camp_info].find.each do |info|
     data << info.to_h
   end
   json data
@@ -540,7 +524,7 @@ put '/api/v1/admin/waiver/:type/update' do
   content_type :json
   waiver_type = "waiver_" + params[:type]
   updated_waiver = params['data']
-  waiver = database[:pageresources].update_one({:name => waiver_type},
+  waiver = database[:page_resources].update_one({:name => waiver_type},
     {'$set' => {
       'dataObj' => updated_waiver
     }, '$currentDate' => { 'updated_at' => true }})
