@@ -261,7 +261,7 @@ put '/api/v1/profiles/:id' do
   end
 
   json database[:profiles].update_one(
-    {'_id' => BSON::ObjectId(idnumber)}, {'$set' => params }
+    {'_id' => BSON::ObjectId(idnumber)}, {'$set' => {role: params[:role]} }
   )
 end
 
