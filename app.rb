@@ -278,15 +278,6 @@ get '/api/v1/profiles/applicationcheck/:id' do
   json data
 end
 
-# database[:applications].find.each do |application|
-#   if type === 'all'
-#     status = application[:status].to_sym
-#     camper = database[:waivers].find(:application => params[:id]).first
-#     data = database[:waivers].find(:application => params[:id]).first
-#     camper = database[:applications].find(:_id => BSON::ObjectId(params[:_id])).first
-#   end
-# end
-
 get '/api/v1/applications/:id/waiver' do
   if params[:id]
     data = database[:waivers].find(:application => params[:id]).first
