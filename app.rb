@@ -164,7 +164,7 @@ end
 post '/api/v1/admin/camp/session/create' do
   newCamp = params['params']
   createdCamp = database[:camp_sessions].insert_one(newCamp)
-  json createdCamp
+  json createdCamp.inserted_ids[0].to_s
 end
 
 
