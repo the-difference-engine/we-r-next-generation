@@ -191,6 +191,17 @@ put '/api/v1/admin/camp/session/:id/update' do
   json updatedCamp
 end
 
+# delete a camp session
+delete '/api/v1/admin/camp/session/:id/delete' do
+  puts "RUNNING DELETE"
+  if database[:camp_sessions].find( { _id: BSON::ObjectId(params[:id]) } ).first
+    database[:camp_sessions].delete_one( { _id: BSON::ObjectId(params[:id]) } )
+    json true
+  else
+    json false
+  end
+end
+
 # get list of applicants related to the camp session id (string)
 get '/api/v1/admin/camp/session/:id/applicants', :provides => :json do
   data = []
