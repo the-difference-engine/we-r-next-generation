@@ -14,7 +14,6 @@ gem 'mongo'
 gem 'bson'
 gem 'sinatra-cors'
 gem 'aws-sdk'
-gem 'digest'
 gem 'bcrypt'
 gem 'pry'
 
