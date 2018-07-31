@@ -16,6 +16,7 @@ gem 'sinatra-cors'
 gem 'aws-sdk'
 gem 'bcrypt'
 gem 'pry'
+gem 'thin'
 
 # for tests
 group :test do
