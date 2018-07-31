@@ -156,7 +156,7 @@ end
 post '/api/v1/admin/camp/session/create' do
   newCamp = params['params']
   createdCamp = database[:camp_sessions].insert_one(newCamp)
-  json createdCamp
+  json createdCamp.inserted_ids[0].to_s
 end
 
 
@@ -175,6 +175,16 @@ put '/api/v1/admin/camp/session/:id/update' do
     }, '$currentDate' => { 'updated_at' => true })
   updatedCamp = database[:camp_sessions].find(:_id => BSON::ObjectId(params[:id])).first.to_h
   json updatedCamp
+end
+
+# delete a camp session
+delete '/api/v1/admin/camp/session/:id/delete' do
+  if database[:camp_sessions].find( { _id: BSON::ObjectId(params[:id]) } ).first
+    database[:camp_sessions].delete_one( { _id: BSON::ObjectId(params[:id]) } )
+    json true
+  else
+    json false
+  end
 end
 
 # get list of applicants related to the camp session id (string)
@@ -253,7 +263,7 @@ put '/api/v1/profiles/:id' do
   end
 
   json database[:profiles].update_one(
-    {'_id' => BSON::ObjectId(idnumber)}, {'$set' => params }
+    {'_id' => BSON::ObjectId(idnumber)}, {'$set' => {role: params[:role]} }
   )
 end
 
