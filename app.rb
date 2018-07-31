@@ -193,7 +193,6 @@ end
 
 # delete a camp session
 delete '/api/v1/admin/camp/session/:id/delete' do
-  puts "RUNNING DELETE"
   if database[:camp_sessions].find( { _id: BSON::ObjectId(params[:id]) } ).first
     database[:camp_sessions].delete_one( { _id: BSON::ObjectId(params[:id]) } )
     json true
