@@ -1,0 +1,9 @@
+development:
+  clients:
+    default:
+      uri: mongodb://qa-db-user-1:wrngpassword1@ds241895.mlab.com:41895/wernextgen-qa
+
+production:
+  clients:
+    default:
+      uri: mongodb://qa-db-user-1:wrngpassword1@ds241895.mlab.com:41895/wernextgen-qa
