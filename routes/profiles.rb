@@ -8,7 +8,7 @@ module Sinatra
           profileParams = ['full_name', 'email', 'address', 'phone_number', 'signature', 'camp_id', 'status', 'bio', 'user_name', 'password']
           signupParams = ['name', 'email', 'password', 'password_hash']
 
-          app.get '/api/v1/profiles' do
+          get_all_profiles = lambda do
             data=[]
             DATABASE[:profiles].find.each do |profile|
               data << profile.to_h
@@ -16,7 +16,7 @@ module Sinatra
             json(data)
           end
 
-          app.post '/api/v1/profiles' do
+          create_a_profile = lambda do
             newProfile = params
             newProfile['password_hash'] = createPasswordHash(params['password'])
             if !checkSignupParameters(newProfile, signupParams)
@@ -36,11 +36,11 @@ module Sinatra
                 "Navigate to this link to activate your account: #{url}",
                 "Follow the link below to activate your account: <br><br> <a href=\"#{url}\">Activate Account</a>"
               )
-              json 200
+              200
             end
           end
 
-          app.get '/api/v1/profiles/:profile_id' do
+          get_profile_by_id = lambda do
             profile_id = params[:profile_id]
             obj_id = BSON::ObjectId(profile_id)
             profile_table = DATABASE[:profiles]
@@ -49,7 +49,7 @@ module Sinatra
             json(match.to_h)
           end
 
-          app.get '/api/v1/profile/:_id' do
+          get_profile_by_session_token = lambda do
             if (params[:_id]) != @token
               halt(401, "Invalid Token")
             else
@@ -59,7 +59,7 @@ module Sinatra
             end
           end
 
-          app.put '/api/v1/profiles/:id' do
+          update_profile_role = lambda do
             idnumber = params.delete("id")
 
             if !@profile || @profile[:role] != 'superadmin'
@@ -73,7 +73,7 @@ module Sinatra
             )
           end
 
-          app.post '/api/v1/profile/edit/:id' do
+          update_profile = lambda do
             content_type :json
             formData = params['params']
             DATABASE[:profiles].find(:_id => BSON::ObjectId(params[:id])).
@@ -86,11 +86,11 @@ module Sinatra
             json updatedInfo
           end
 
-          app.delete '/api/v1/profiles/:_id' do
+          delete_profile = lambda do
             DATABASE[:profiles].delete_one( {_id: BSON::ObjectId(params[:_id]) } )
           end
 
-          app.put '/api/v1/profiles/activate/:_id' do
+          activate_profile = lambda do
             if params[:_id] && DATABASE[:profiles].find(:_id => BSON::ObjectId(params[:_id])).first
               profile = DATABASE[:profiles].find(:_id => BSON::ObjectId(params[:_id])).first
               if !profile['active']
@@ -103,7 +103,7 @@ module Sinatra
             end
           end
 
-          app.put '/api/v1/profiles/resetPassword' do
+          reset_profile_password = lambda do
             email = params[:email]
             profile = DATABASE[:profiles].find(:email => email).first
             if !profile || !profile[:active]
@@ -120,19 +120,29 @@ module Sinatra
               'Click on the following link to reset your password: #{url}',
               "Follow the link below to reset your password: <br><br> <a href=\"#{url}\">Reset Password</a>"
             )
-            json 200
+            200
           end
 
-          app.put '/api/v1/profiles/newPassword' do
+          update_password = lambda do
             profile = DATABASE[:profiles].find(:resetToken => params[:resetToken]).first
             if profile && profile[:active]
               password_hash = createPasswordHash(params[:password])
               DATABASE[:profiles].update_one({:resetToken => params[:resetToken]}, {'$set' => {password_hash: password_hash, resetToken: ''}})
-              json 200
+              200
             else
               halt 400, "no profile found with that reset token"
             end
           end
+ 
+          app.post '/api/v1/profiles', &create_a_profile
+          app.get '/api/v1/profiles/:profile_id', &get_profile_by_id
+          app.get '/api/v1/profile/:_id', &get_profile_by_session_token
+          app.put '/api/v1/profiles/:id', &update_profile_role
+          app.post '/api/v1/profile/edit/:id', &update_profile
+          app.delete '/api/v1/profiles/:_id', &delete_profile
+          app.put '/api/v1/profiles/activate/:_id', &activate_profile
+          app.put '/api/v1/profiles/resetPassword', &reset_profile_password
+          app.put '/api/v1/profiles/newPassword', &update_password
 
         end
 

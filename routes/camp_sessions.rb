@@ -5,7 +5,6 @@ module Sinatra
 
         def self.registered(app)
           
-          # get all
           get_all_camp_sessions = lambda do
             data=[]
             DATABASE[:camp_sessions].find.each do |camp|
@@ -20,7 +19,7 @@ module Sinatra
             json createdCamp.inserted_ids[0].to_s
           end
 
-          lambda_name = lambda do
+          update_camp_session = lambda do
             content_type :json
             updatedCamp = params['params']
             DATABASE[:camp_sessions].find(:_id => BSON::ObjectId(params[:id])).
@@ -37,8 +36,7 @@ module Sinatra
             json updatedCamp
           end
 
-          # delete a camp session
-          lambda_name = lambda do
+          delete_camp_session = lambda do
             if DATABASE[:camp_sessions].find( { _id: BSON::ObjectId(params[:id]) } ).first
               DATABASE[:camp_sessions].delete_one( { _id: BSON::ObjectId(params[:id]) } )
               json true
@@ -47,8 +45,7 @@ module Sinatra
             end
           end
 
-          # get list of applicants related to the camp session id (string)
-          lambda_name = lambda do
+          get_camp_session_applicant_list = lambda do
             data = []
             if params[:id]
               DATABASE[:applications].find(:camp => params[:id]).each do |applicant|
@@ -58,7 +55,7 @@ module Sinatra
             end
           end
 
-          lambda_name = lambda do
+          get_camp_session = lambda do
             if params[:id]
               data = DATABASE[:camp_sessions].find(:_id => BSON::ObjectId(params[:id])).first
               json data
@@ -70,10 +67,10 @@ module Sinatra
           app.get '/api/v1/camp/session/get', &get_all_camp_sessions
           app.get '/api/v1/camp/sessions', &get_all_camp_sessions
           app.post '/api/v1/admin/camp/session/create', &create_new_camp_session
-          app.put '/api/v1/admin/camp/session/:id/update', &lambda_name
-          app.delete '/api/v1/admin/camp/session/:id/delete', &lambda_name
-          app.get '/api/v1/admin/camp/session/:id/applicants', &lambda_name
-          app.get '/api/v1/camp/session/:id', &lambda_name
+          app.put '/api/v1/admin/camp/session/:id/update', &update_camp_session
+          app.delete '/api/v1/admin/camp/session/:id/delete', &delete_camp_session
+          app.get '/api/v1/admin/camp/session/:id/applicants', &get_camp_session_applicant_list
+          app.get '/api/v1/camp/session/:id', &get_camp_session
 
         end
 

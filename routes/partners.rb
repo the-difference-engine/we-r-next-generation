@@ -5,21 +5,22 @@ module Sinatra
 
         def self.registered(app)
 
-          # Partner endpoints
-
-          app.post '/api/v1/admin/partner/add' do
+          add_partner = lambda do
             homePage = DATABASE[:pageresources].find({:name => 'homepage'}).first['dataObj']
             partners = homePage['partners']
             partners.push(params['partner'])
             json DATABASE[:pageresources].update_one({'name' => 'homepage'}, '$set' => {'dataObj.partners' => partners})
           end
 
-          app.post '/api/v1/admin/partner/delete' do
+          delete_partner = lambda do
             homePage = DATABASE[:pageresources].find({:name => 'homepage'}).first['dataObj']
             partners = homePage['partners']
             partners.delete_at(params['index'].to_i)
             json DATABASE[:pageresources].update_one({'name' => 'homepage'}, '$set' => {'dataObj.partners' => partners})
           end
+
+          app.post '/api/v1/admin/partner/add', &add_partner
+          app.post '/api/v1/admin/partner/delete', &delete_partner
 
         end
 

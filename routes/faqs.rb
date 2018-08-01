@@ -9,7 +9,7 @@ module Sinatra
 
           newQuestionParams = ['name', 'email', 'message']
 
-          app.get '/api/v1/faq' do
+          get_all_faqs = lambda do
             data = []
             DATABASE[:faqs].find.each do |faq|
               data << faq.to_h
@@ -17,7 +17,7 @@ module Sinatra
             json data
           end
 
-          app.post '/api/v1/faq' do
+          ask_a_question = lambda do
             if !checkParameters(@params, newQuestionParams)
               halt 400, "the requirements were not met, did not post question to WRNG staff"
             else
@@ -27,13 +27,11 @@ module Sinatra
             end
           end
 
-          # faq edits
-
-          app.get '/api/v1/admin/faqEdit/:_id' do
+          get_faq = lambda do
             json DATABASE[:faqs].find(:_id => BSON::ObjectId(params[:_id])).first
           end
 
-          app.post '/api/v1/admin/faqEdit/:id' do
+          update_faq = lambda do
             content_type :json
             updatedFaq = params['params']
             DATABASE[:faqs].find(:_id => BSON::ObjectId(params[:id])).
@@ -46,7 +44,7 @@ module Sinatra
             json updatedFaq
           end
 
-          app.delete '/api/v1/admin/faqEdit/:id' do
+          delete_faq = lambda do
             if DATABASE[:faqs].find({:_id => BSON::ObjectId(params[:id])}).first
               DATABASE[:faqs].delete_one( {_id: BSON::ObjectId(params[:id]) } )
               halt 200, "faq deleted"
@@ -55,10 +53,17 @@ module Sinatra
             end
           end
 
-          app.post '/api/v1/admin/faqAdd' do
+          create_faq = lambda do
             newFaq = DATABASE[:faqs].insert_one(params['params'])
             json newFaq.inserted_ids[0]
           end
+
+          app.get '/api/v1/faq', &get_all_faqs
+          app.post '/api/v1/faq', &ask_a_question
+          app.get '/api/v1/admin/faqEdit/:_id', &get_faq
+          app.post '/api/v1/admin/faqEdit/:id', &update_faq
+          app.delete '/api/v1/admin/faqEdit/:id', &delete_faq
+          app.post '/api/v1/admin/faqAdd', &create_faq
 
         end
 

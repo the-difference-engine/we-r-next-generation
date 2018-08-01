@@ -5,9 +5,7 @@ module Sinatra
 
         def self.registered(app)
 
-          #sessions endpoints
-
-          app.post '/api/v1/sessions' do
+          create_session = lambda do
             data = []
             results = DATABASE[:profiles].find({ '$text' => { '$search' => "\"#{params[:email]}\"", '$caseSensitive' => false } } ).first
 
@@ -26,7 +24,7 @@ module Sinatra
             return {"X_TOKEN"=> token.inserted_id.to_s, "profileData" => results}.to_json
           end
 
-          app.delete '/api/v1/sessions/:_id' do
+          delete_session = lambda do
 
             if (params[:_id]) != @token
               halt(401, "Invalid Token")
@@ -36,7 +34,7 @@ module Sinatra
             end
           end
 
-          app.get '/api/v1/sessions/:_id' do
+          get_session = lambda do
             if (params[:_id]) != @token
               halt(401, "Invalid Token")
             else
@@ -46,6 +44,10 @@ module Sinatra
 
             end
           end
+
+          app.post '/api/v1/sessions', &create_session
+          app.delete '/api/v1/sessions/:_id', &delete_session
+          app.get '/api/v1/sessions/:_id', &get_session
 
         end
 
