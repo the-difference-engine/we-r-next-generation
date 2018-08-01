@@ -4,15 +4,13 @@ module Sinatra
       module Applications
 
         def self.registered(app)
-
-          # Application endpoints
           
-          app.post '/api/v1/applications' do
+          create_an_application = lambda do
             app = DATABASE[:applications].insert_one(params['params'])
             json app.inserted_ids[0]
           end
 
-          app.post '/api/v1/applications/waiver' do
+          attach_waiver_to_application = lambda do
             app = DATABASE[:applications].insert_one(params['params']['application'])
             app_id = app.inserted_ids[0].to_s
             waiver = params['params']['waiver']
@@ -21,7 +19,7 @@ module Sinatra
             json app_id
           end
 
-          app.get '/api/v1/profiles/applicationcheck/:id' do
+          get_type_and_id_of_all_applications = lambda do
             data = []
             DATABASE[:application].find.each do |app|
               waiver = DATABASE[:waivers].find(:application => params[:id]).first
@@ -39,7 +37,7 @@ module Sinatra
             json data
           end
 
-          app.get '/api/v1/applications/:id/waiver' do
+          get_application_waiver = lambda do
             if params[:id]
               data = DATABASE[:waivers].find(:application => params[:id]).first
               json data
@@ -48,15 +46,32 @@ module Sinatra
             end
           end
 
-          # Volunteer endpoints
-
-          app.get '/api/v1/admin/applications/:type' do
+          get_applications_by_type = lambda do
             type = params[:type]
             applications = {
-              submitted: {:icon => 'fa fa-edit', :apps => {}, :next => 'pending'},
-              pending: {:icon => 'fa fa-clock-o', :apps => {}, :prev => 'submitted', :reject => 'not_approved', :approve => 'approved'},
-              approved: {:icon => 'fa fa-check', :apps => {}, :prev => 'pending'},
-              not_approved: {:icon => 'fa fa-times', :apps => {}, :prev => 'pending', :next => 'delete'}
+              submitted: {
+                :icon => 'fa fa-edit',
+                :apps => {},
+                :next => 'pending'
+              },
+              pending: {
+                :icon => 'fa fa-clock-o',
+                :apps => {},
+                :prev => 'submitted',
+                :reject => 'not_approved',
+                :approve => 'approved'
+              },
+              approved: {
+                :icon => 'fa fa-check',
+                :apps => {},
+                :prev => 'pending'
+              },
+              not_approved: {
+                :icon => 'fa fa-times',
+                :apps => {},
+                :prev => 'pending',
+                :next => 'delete'
+              }
             }
             sessions = {}
             if type === 'camper'
@@ -83,7 +98,7 @@ module Sinatra
               return {"applications" => applications, "type" => type}.to_json
           end
 
-          app.get '/api/v1/admin/applications/app/:id' do
+          get_application_and_camp_session_info = lambda do
             application = DATABASE[:applications].find({'_id' => BSON::ObjectId(params[:id])}).first
             if application && (application[:type] === 'camper' || application[:type] === 'volunteer')
               application[:camp_data] = DATABASE[:camp_sessions].find({'_id' => BSON::ObjectId(application[:camp])}).first
@@ -91,7 +106,7 @@ module Sinatra
              json application
           end
 
-          app.put '/api/v1/admin/applications/status/:id' do
+          update_application_status = lambda do
             id = params[:id]
             newParams = params['params']
             application = DATABASE[:applications].find({'_id' => BSON::ObjectId(id)}).first
@@ -108,7 +123,7 @@ module Sinatra
             end
           end
 
-          app.delete '/api/v1/admin/applications/:id' do
+          delete_application = lambda do
             if DATABASE[:applications].find({:_id => BSON::ObjectId(params[:id])}).first
               DATABASE[:applications].delete_one( {_id: BSON::ObjectId(params[:id]) } )
               halt 200, "record deleted"
@@ -116,6 +131,16 @@ module Sinatra
               halt 400, "could not find this application in the database"
             end
           end
+
+          app.post '/api/v1/applications', &create_an_application
+          app.post '/api/v1/applications/waiver', &attach_waiver_to_application
+          app.get '/api/v1/profiles/applicationcheck/:id', &get_type_and_id_of_all_applications
+          app.get '/api/v1/applications/:id/waiver', &get_application_waiver
+
+          app.get '/api/v1/admin/applications/:type', &get_applications_by_type
+          app.get '/api/v1/admin/applications/app/:id', &get_application_and_camp_session_info
+          app.put '/api/v1/admin/applications/status/:id', &update_application_status
+          app.delete '/api/v1/admin/applications/:id', &delete_application
 
         end
 

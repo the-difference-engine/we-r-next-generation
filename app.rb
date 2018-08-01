@@ -5,32 +5,23 @@ require 'sinatra/json'
 require 'rack'
 require 'rack/contrib'
 require 'mongo'
+require 'mongoid'
 require 'sinatra/cors'
 require 'pry'
 
-require_relative 'validate'
-require_relative 'emailUtils'
-require_relative 'pswdSecurity'
+require_relative 'helpers'
 
-require_relative 'routes/profiles'
-require_relative 'routes/camp_sessions'
-require_relative 'routes/applications'
-require_relative 'routes/sessions'
-require_relative 'routes/page_resources'
-require_relative 'routes/partners'
-require_relative 'routes/faqs'
-require_relative 'routes/success_stories'
-require_relative 'routes/camp_info'
-require_relative 'routes/opportunities'
-require_relative 'routes/waivers'
+Dir.glob('routes/*.rb') { |file| require_relative file }
+Dir.glob('models/*.rb') { |file| require_relative file }
 
 # Set MONGODB_URL
 DATABASE = Mongo::Client.new(ENV["MONGODB_URL"])
+Mongoid.load! "mongoid.yml"
 
 class WeRNextGenerationApp < Sinatra::Base
 
   set :allow_origin, "*"
-  set :allow_methods, "GET,HEAD,POST,DELETE,PUT"
+  set :allow_methods, "GET,HEAD,POST,DELETE,PUT,OPTIONS"
   set :allow_headers, "content-type,if-modified-since,x-token"
   set :expose_headers, "location,link"
 
@@ -38,7 +29,7 @@ class WeRNextGenerationApp < Sinatra::Base
   getWhitelist = ['resources', 'faq', 'campinfo', 'opportunities', 'applications/volunteers', 'successStories', 'hello']
   putWhiteList = ['profiles/activate', 'profiles/resetPassword', 'profiles/newPassword']
 
-  before '*' do 
+  before '*' do
     if (postWhitelist.any? { |value| request.path_info.include? '/api/v1/' + value}) && (request.request_method == "POST")
       next
 
@@ -52,7 +43,6 @@ class WeRNextGenerationApp < Sinatra::Base
       next
 
     else
-      collection = DATABASE[:sessions]
       @token = request.env['HTTP_X_TOKEN']
       if !@token
         @token = request.env['rack.request.form_hash'] || ''
@@ -63,8 +53,8 @@ class WeRNextGenerationApp < Sinatra::Base
       if (@token.nil? || @token.empty?)
         halt(401, "No token received from browser request")
       else
-        session = collection.find( {:_id => BSON::ObjectId(@token) }).first
-        @profile = DATABASE[:profiles].find(:email => session[:email]).first
+        session = Session.where(id: BSON::ObjectId(@token))
+        @profile = Profile.where(email: session[:email])
         if session.nil?
           halt(401, "Invalid Token")
         elsif !BSON::ObjectId.legal?(@token)
@@ -82,6 +72,8 @@ class WeRNextGenerationApp < Sinatra::Base
   get '/api/v1/hello' do
     json({msg: 'hello world! im working.'})
   end
+
+  helpers Sinatra::WeRNextGenerationApp::Helpers
 
   register Sinatra::WeRNextGenerationApp::Routing::Profiles
   register Sinatra::WeRNextGenerationApp::Routing::CampSessions

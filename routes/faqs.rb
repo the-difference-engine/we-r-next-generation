@@ -7,6 +7,8 @@ module Sinatra
 
             # faq endpoints
 
+          newQuestionParams = ['name', 'email', 'message']
+
           app.get '/api/v1/faq' do
             data = []
             DATABASE[:faqs].find.each do |faq|
@@ -14,8 +16,6 @@ module Sinatra
             end
             json data
           end
-
-          newQuestionParams = ['name', 'email', 'message']
 
           app.post '/api/v1/faq' do
             if !checkParameters(@params, newQuestionParams)
