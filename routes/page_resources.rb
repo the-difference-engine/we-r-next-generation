@@ -57,8 +57,8 @@ module Sinatra
             json DATABASE[:pageresources].update_one({'name' => 'homepage'}, '$set' => {'dataObj.partners' => partners})
           end
 
-          app.get '/api/v1/opportunities', &get_page_resources
-          app.get '/api/v1/opportunities', &update_hero_image
+          app.get '/api/v1/resources/:pagename', &get_page_resources
+          app.get '/api/v1/resources/update/heroimage', &update_hero_image
           app.put '/api/v1/admin/waiver/:type/update', &update_waiver_info
           app.post '/api/v1/admin/partner/add', &add_partner
           app.post '/api/v1/admin/partner/delete', &delete_partner
