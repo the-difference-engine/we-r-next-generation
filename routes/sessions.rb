@@ -6,48 +6,41 @@ module Sinatra
         def self.registered(app)
 
           create_session = lambda do
-            data = []
-            results = DATABASE[:profiles].find({ '$text' => { '$search' => "\"#{params[:email]}\"", '$caseSensitive' => false } } ).first
-
-            if !results
-              halt(401)
-            elsif (checkPassword(results[:password_hash], params[:password]) && results[:active] === true)
-              params.delete('password')
-              token = DATABASE[:sessions].insert_one(params)
-              data << token.inserted_id
-              data << results
-              results.delete('password_hash')
+            profile = Profile.find_by(email: params[:email])
+            if !profile
+              halt 404
             else
-              halt(401)
-            end
-
-            return {"X_TOKEN"=> token.inserted_id.to_s, "profileData" => results}.to_json
-          end
-
-          delete_session = lambda do
-
-            if (params[:_id]) != @token
-              halt(401, "Invalid Token")
-            else
-              DATABASE[:sessions].delete_one( {_id: BSON::ObjectId(params[:_id]) } )
-              return "deleted"
+              if checkPassword(profile.password_hash, params[:password]) && profile.active === true
+                session = Session.create(email: profile.email)
+                json(X_TOKEN: session.id.to_s, profileData: profile)
+              else
+                halt 401
+              end
             end
           end
 
           get_session = lambda do
-            if (params[:_id]) != @token
+            if (params[:id]) != @token
               halt(401, "Invalid Token")
             else
-              checkedSession = DATABASE[:sessions].find(:_id => BSON::ObjectId(params[:_id])).first
-              profileData = DATABASE[:profiles].find(:email => checkedSession[:email]).first
-              return {"X_TOKEN" => checkedSession[:_id].to_s, "profileData" => profileData}.to_json
+              session = Session.find(params[:id])
+              profile = Profile.find_by(email: session.email)
+              json(X_TOKEN: session.id.to_s, profileData: profile)
+            end
+          end
 
+          delete_session = lambda do
+            if (params[:id]) != @token
+              halt 401, "Invalid Token"
+            else
+              Session.find(params[:id]).destroy
+              200
             end
           end
 
           app.post '/api/v1/sessions', &create_session
-          app.delete '/api/v1/sessions/:_id', &delete_session
-          app.get '/api/v1/sessions/:_id', &get_session
+          app.get '/api/v1/sessions/:id', &get_session
+          app.delete '/api/v1/sessions/:id', &delete_session
 
         end
 
