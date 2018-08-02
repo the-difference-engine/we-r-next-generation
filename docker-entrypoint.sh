@@ -1,4 +1,4 @@
 #!/bin/bash
 
 bundle install
-rerun --background 'bundle exec thin start'
+rerun --background 'bundle exec thin start -D'
