@@ -5,7 +5,7 @@ module Sinatra
   module WeRNextGenerationApp
     module Helpers
 
-      def sendEmail(to, reply, subject, text, html = false)
+      def sendEmail(to_addresses_array:, reply_addresses_array:, subject:, text:, html: false)
         ses = Aws::SES::Client.new(
           region: 'us-east-1',
           access_key_id: ENV['access_key_id'],
@@ -15,22 +15,28 @@ module Sinatra
         body = {}
 
         if html
-          body['html'] = {data: html}
+          body['html'] = {
+            data: html
+          }
         else
-          body['text'] = {data: text}
+          body['text'] = {
+            data: text
+          }
         end
 
         begin
           a = ses.send_email({
             destination: {
-              to_addresses: [to]
+              to_addresses: to_addresses_array
             },
             message: {
               body: body,
-              subject: {data: subject},
+              subject: {
+                data: subject
+              },
             },
             source: 'no-reply@wernextgeneration.org',
-            reply_to_addresses: [reply]
+            reply_to_addresses: reply_addresses_array
           })
 
           a.data.message_id

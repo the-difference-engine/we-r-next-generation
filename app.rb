@@ -8,6 +8,7 @@ require 'mongo'
 require 'mongoid'
 require 'sinatra/cors'
 require 'pry'
+require 'digest'
 
 require_relative 'helpers'
 
@@ -26,8 +27,8 @@ class WeRNextGenerationApp < Sinatra::Base
   set :expose_headers, "location,link"
 
   postWhitelist = ['sessions', 'faq', 'profiles', 'applications/waiver/:id', 'camp/session/create']
-  getWhitelist = ['resources', 'faq', 'campinfo', 'opportunities', 'applications/volunteers', 'successStories', 'hello']
-  putWhiteList = ['profiles/activate', 'profiles/resetPassword', 'profiles/newPassword']
+  getWhitelist = ['resources', 'faq', 'campinfo', 'opportunities', 'applications/volunteers', 'successStories', 'health-check', 'resetPassword']
+  putWhiteList = ['profiles/activate', 'updatePassword']
 
   before '*' do
     if (postWhitelist.any? { |value| request.path_info.include? '/api/v1/' + value}) && (request.request_method == "POST")
@@ -53,9 +54,9 @@ class WeRNextGenerationApp < Sinatra::Base
       if (@token.nil? || @token.empty?)
         halt(401, "No token received from browser request")
       else
-        session = Session.find(id: @token)
-        @profile = Profile.find_by(email: session[:email])
-        if session.nil?
+        @session = Session.find(id: @token)
+        @profile = Profile.find_by(email: @session[:email])
+        if @session.nil?
           halt(401, "Invalid Token")
         elsif !BSON::ObjectId.legal?(@token)
           halt(401, "Invalid Token")
