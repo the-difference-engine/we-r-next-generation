@@ -5,8 +5,6 @@ module Sinatra
 
         def self.registered(app)
 
-            # faq endpoints
-
           newQuestionParams = ['name', 'email', 'message']
 
           get_all_faqs = lambda do

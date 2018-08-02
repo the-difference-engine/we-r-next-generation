@@ -81,15 +81,13 @@ class WeRNextGenerationApp < Sinatra::Base
 
   helpers Sinatra::WeRNextGenerationApp::Helpers
 
-  register Sinatra::WeRNextGenerationApp::Routing::Profiles
-  register Sinatra::WeRNextGenerationApp::Routing::CampSessions
   register Sinatra::WeRNextGenerationApp::Routing::Applications
-  register Sinatra::WeRNextGenerationApp::Routing::Sessions
-  register Sinatra::WeRNextGenerationApp::Routing::PageResources
-  register Sinatra::WeRNextGenerationApp::Routing::Partners
-  register Sinatra::WeRNextGenerationApp::Routing::FAQs
-  register Sinatra::WeRNextGenerationApp::Routing::SuccessStories
   register Sinatra::WeRNextGenerationApp::Routing::CampInfo
+  register Sinatra::WeRNextGenerationApp::Routing::CampSessions
+  register Sinatra::WeRNextGenerationApp::Routing::FAQs
   register Sinatra::WeRNextGenerationApp::Routing::Opportunities
-  register Sinatra::WeRNextGenerationApp::Routing::Waivers
+  register Sinatra::WeRNextGenerationApp::Routing::PageResources
+  register Sinatra::WeRNextGenerationApp::Routing::Profiles
+  register Sinatra::WeRNextGenerationApp::Routing::Sessions
+  register Sinatra::WeRNextGenerationApp::Routing::SuccessStories
 end
