@@ -502,6 +502,22 @@ get '/api/v1/profile/:_id' do
   end
 end
 
+get '/api/v1/profile/:_id/applications' do
+  #   get applications submitted for this profile id
+  if (params[:_id]) != @token
+    # profile id is not the current user
+    halt(401, "Invalid Token")
+  else
+    checkedSession = database[:sessions].find(:_id => BSON::ObjectId(params[:_id])).first
+    user = database[:profiles].find(:email => checkedSession[:email]).first
+    applications = []
+    database[:applications].find(:profileId => user[:_id].to_s).each do |application|
+      applications << application.to_h
+    end
+    json applications
+  end
+end
+
 # opportunities endpoints
 
 get '/api/v1/opportunities' do
