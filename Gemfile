@@ -13,10 +13,11 @@ gem 'multi_json'
 gem 'mongo'
 gem 'bson'
 gem 'sinatra-cors'
-gem 'aws-sdk'
-# gem 'digest'
+gem 'aws-sdk-ses'
 gem 'bcrypt'
 gem 'pry'
+gem 'thin'
+gem 'mongoid'
 
 # for tests
 group :test do
