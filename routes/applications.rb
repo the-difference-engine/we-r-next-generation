@@ -104,6 +104,10 @@ module Sinatra
             json(data)
           end
 
+          get_all_applications_by_user = lambda do
+            json(WRNGApplication.where(profileId: @profile.id))
+          end
+
           get_application_and_camp_session_info = lambda do
             application = WRNGApplication.find(params[:id])
             if application && (application[:type] == 'camper' || application[:type] == 'volunteer')
@@ -140,6 +144,7 @@ module Sinatra
           app.post '/api/v1/applications/waiver', &create_application_with_waiver
           app.get '/api/v1/profiles/applicationcheck/:id', &get_type_and_id_of_all_applications
           app.get '/api/v1/applications/:id/waiver', &get_application_waiver
+          app.get '/api/v1/profile/applications', &get_all_applications_by_user
 
           app.get '/api/v1/admin/applications/:type', &get_applications_by_type
           app.get '/api/v1/admin/applications/app/:id', &get_application_and_camp_session_info

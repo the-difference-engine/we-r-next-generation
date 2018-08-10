@@ -15,6 +15,15 @@ module Sinatra
             json(created_camp)
           end
 
+          get_camp_session = lambda do
+            camp = CampSession.find(params[:id])
+            if camp
+              json(camp)
+            else
+              halt 404, 'No camp found with that ID.'
+            end
+          end
+
           update_camp_session = lambda do
             camp_to_update = CampSession.find(params[:id])
             params['params']['updated_at'] = DateTime.now
@@ -34,15 +43,6 @@ module Sinatra
 
           get_camp_session_applicant_list = lambda do
             json(Application.where(camp: params[:id]))
-          end
-
-          get_camp_session = lambda do
-            camp = CampSession.find(params[:id])
-            if camp
-              json(camp)
-            else
-              halt 404, 'No camp found with that ID.'
-            end
           end
 
           app.get '/api/v1/camp/session/get', &get_all_camp_sessions
