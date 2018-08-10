@@ -26,7 +26,7 @@ module Sinatra
             end
           end
 
-          create_faq = lambda do
+          create_question = lambda do
             created_question = FAQ.create(params['params'])
             json(created_question)
           end
@@ -58,7 +58,7 @@ module Sinatra
           app.get '/api/v1/faq', &get_all_questions
           app.post '/api/v1/faq', &ask_a_question
           app.get '/api/v1/admin/faqEdit/:id', &get_question
-          app.post '/api/v1/admin/faq', &create_faq
+          app.post '/api/v1/admin/faq', &create_question
           app.post '/api/v1/admin/faqEdit/:id', &update_question
           app.delete '/api/v1/admin/faqEdit/:id', &delete_question
           app.post '/api/v1/admin/faqAdd', &create_question
