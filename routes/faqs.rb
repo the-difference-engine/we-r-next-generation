@@ -12,12 +12,12 @@ module Sinatra
           end
 
           ask_a_question = lambda do
-            if !checkParameters(@params, new_question_params)
+            if !check_parameters(@params, new_question_params)
               halt 400, 'the requirements were not met, did not post question to WRNG staff'
             else
               message = "#{@params['message']} - Question Submitted By: #{@params['name']}"
               email = @params['email']
-              sendEmail(
+              send_email(
                 ENV['faq_email'],
                 email,
                 'FAQ Submission',

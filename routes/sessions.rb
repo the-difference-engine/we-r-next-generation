@@ -9,7 +9,7 @@ module Sinatra
             profile = Profile.find_by(email: params[:email])
             if !profile
               halt 404
-            elsif checkPassword(profile.password_hash, params[:password]) && profile.active == true
+            elsif check_password(profile.password_hash, params[:password]) && profile.active == true
               session = Session.create(email: profile.email)
               json(X_TOKEN: session.id.to_s, profileData: profile)
             else

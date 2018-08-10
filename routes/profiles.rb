@@ -14,8 +14,8 @@ module Sinatra
 
           create_a_profile = lambda do
             profile = params
-            profile['password_hash'] = createPasswordHash(params['password'])
-            if !checkSignupParameters(profile, signup_params)
+            profile['password_hash'] = create_password_hash(params['password'])
+            if !check_signup_parameters(profile, signup_params)
               halt 400, 'Parameter requirements were not met.'
             elsif Profile.find_by(email: profile['email'])
               halt 400, 'A profile with this email address already exists.'
@@ -25,7 +25,7 @@ module Sinatra
               profile.delete('password')
               profile = Profile.create(profile)
               url = 'http://wernextgeneration.org/#/confirmation/' + profile.id
-              sendEmail(
+              send_email(
                 to_addresses_array: [profile.email],
                 reply_addresses_array: ['no-reply@wernextgeneration.org'],
                 subject: 'WeRNextGeneration - Sign Up Confirmation',
@@ -51,7 +51,7 @@ module Sinatra
 
           update_profile = lambda do
             if !@profile || @profile[:role] != 'superadmin'
-              halt 400, 'Parameter requirements were not met.' unless checkParameters(params, profile_params)
+              halt 400, 'Parameter requirements were not met.' unless check_parameters(params, profile_params)
             end
 
             profile = Profile.find(params[:id])
@@ -88,7 +88,7 @@ module Sinatra
             profile.update_attributes(reset_token: hex_digest)
 
             url = 'http://wernextgeneration.org/#/updatePassword/' + hex_digest
-            sendEmail(
+            send_email(
               to_addresses_array: [profile.email],
               reply_addresses_array: ['no-reply@wernextgeneration.org'],
               subject: 'WeRNextGeneration - Password Reset',
@@ -102,7 +102,7 @@ module Sinatra
           update_password = lambda do
             profile = Profile.find_by(reset_token: params[:reset_token])
             if profile && profile[:active]
-              password_hash = createPasswordHash(params[:password])
+              password_hash = create_password_hash(params[:password])
               profile.update_attributes(password_hash: password_hash, reset_token: nil)
               json(profile)
             else

@@ -78,9 +78,8 @@ class WeRNextGenerationApp < Sinatra::Base
       halt(401, 'Invalid Token') if @session.nil?
       halt(401, 'Invalid Token') unless BSON::ObjectId.legal?(@token)
 
-      halt(401, 'Minimum admin profile required') if request.path_info.include? '/admin/' && \
+      halt(401, 'Minimum admin profile required') if (request.path_info.include? '/admin/') && \
                                                      (!@profile || !%w[admin superadmin].include?(@profile.role))
-      end
     end
   end
 

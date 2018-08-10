@@ -1,11 +1,12 @@
+# frozen_string_literal: true
+
 require 'aws-sdk-ses'
 require 'bcrypt'
 
 module Sinatra
   module WeRNextGenerationApp
     module Helpers
-
-      def sendEmail(to_addresses_array:, reply_addresses_array:, subject:, text:, html: false)
+      def send_email(to_addresses_array:, reply_addresses_array:, subject:, text:, html: false)
         ses = Aws::SES::Client.new(
           region: 'us-east-1',
           access_key_id: ENV['access_key_id'],
@@ -25,7 +26,7 @@ module Sinatra
         end
 
         begin
-          a = ses.send_email({
+          email_obj = {
             destination: {
               to_addresses: to_addresses_array
             },
@@ -33,45 +34,41 @@ module Sinatra
               body: body,
               subject: {
                 data: subject
-              },
+              }
             },
             source: 'no-reply@wernextgeneration.org',
             reply_to_addresses: reply_addresses_array
-          })
+          }
+          ses_response = ses.send_email(email_obj)
 
-          a.data.message_id
+          ses_response.data.message_id
         rescue
-          puts "ERROR: Failed to send email"
+          puts 'ERROR: Failed to send email'
         end
       end
 
-      def createPasswordHash (password)
-        return BCrypt::Password.create(password)
+      def create_password_hash(password)
+        BCrypt::Password.create(password)
       end
 
-      def checkPassword (passwordHash, password)
-        correctPass = BCrypt::Password.new(passwordHash)
-        return correctPass.is_password?(password)
+      def check_password(password_hash, password)
+        correct_pass = BCrypt::Password.new(password_hash)
+        correct_pass.is_password?(password)
       end
 
-      def checkParameters(parameters, required)
-        for reqs in required do
-          if !parameters.include?(reqs)
-            return false
-          end
+      def check_parameters(parameters, required)
+        required.each do |req|
+          return false unless parameters.include?(req)
         end
-        return parameters.length == required.length
+        parameters.length == required.length
       end
 
-      def checkSignupParameters(parameters, required)
-        for reqs in required do
-          if parameters[reqs] === ''
-            return false
-          end
+      def check_signup_parameters(parameters, required)
+        required.each do |req|
+          return false if parameters[req] == ''
         end
-        return parameters.length == required.length
+        parameters.length == required.length
       end
-
     end
   end
 end
