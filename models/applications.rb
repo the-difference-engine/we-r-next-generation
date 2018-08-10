@@ -1,5 +1,8 @@
-class Application
+# frozen_string_literal: true
+
+class WRNGApplication
   include Mongoid::Document
+  store_in collection: 'applications'
 
   field :full_name, type: String
   field :email, type: String
@@ -18,4 +21,8 @@ class Application
   field :childName, type: String
   field :age, type: String
   field :gender, type: String
+  field :companyName, type: String
+  field :companyLogo, type: String
+  field :companyUrl, type: String
+  field :profileId, type: String
 end

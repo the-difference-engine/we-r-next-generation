@@ -1,70 +1,67 @@
+# frozen_string_literal: true
+
 module Sinatra
   module WeRNextGenerationApp
     module Routing
       module PageResources
-
         def self.registered(app)
-
           get_page_resources = lambda do
-            result = DATABASE[:pageresources].find(:name => params[:pagename])
-
-            if result.count.zero?
-              404
+            if PageResource.find_by(name: params[:pagename])
+              json(resource.dataObj)
             else
-              json result.first['dataObj']
+              halt 404, 'No resource found with that ID.'
             end
           end
 
           update_hero_image = lambda do
-            homePage = DATABASE[:pageresources].find({:name => 'homepage'}).first['dataObj']
-            heroHistory = homePage['heroHistory']
-            heroHistory.pop
-            heroHistory.unshift(params['heroImage'])
-            json DATABASE[:pageresources].update_one({'name' => 'homepage'}, {'$set' => {'dataObj.heroImage' => params['heroImage'], 'dataObj.heroHistory' => heroHistory}})
+            resource = PageResource.find_by(name: 'homepage')
+            homepage = resource.dataObj
+            homepage['heroHistory'].unshift(homepage['heroImage'])
+            homepage['heroImage'] = params['heroImage']
+            updated_resource = resource.update_attributes(
+              dataObj: homepage,
+              updated_at: DateTime.now
+            )
+            json(updated_resource)
           end
 
-          update_waiver_info = lambda do
-            content_type :json
-            waiver_type = "waiver_" + params[:type]
-            updated_waiver = params['data']
-            waiver = DATABASE[:pageresources].update_one(
-              {
-                :name => waiver_type
-              },
-              {
-                '$set' => {
-                  'dataObj' => updated_waiver
-                }, 
-                '$currentDate' => { 
-                  'updated_at' => true 
-                }
-              }
+          update_waiver_form_info = lambda do
+            waiver_form = PageResource.find_by(name: "waiver_#{params[:type]}")
+            updated_waiver_form = waiver_form.update_attributes(
+              dataObj: params['data'],
+              updated_at: DateTime.now
             )
-            json waiver
+            json(updated_waiver_form)
           end
 
           add_partner = lambda do
-            homePage = DATABASE[:pageresources].find({:name => 'homepage'}).first['dataObj']
-            partners = homePage['partners']
-            partners.push(params['partner'])
-            json DATABASE[:pageresources].update_one({'name' => 'homepage'}, '$set' => {'dataObj.partners' => partners})
+            resource = PageResource.find_by(name: 'homepage')
+            homepage = resource.dataObj
+            homePage['partners'].push(params['partner'])
+            updated_resource = resource.update_attributes(
+              dataObj: homepage,
+              updated_at: DateTime.now
+            )
+            json(updated_resource)
           end
 
           delete_partner = lambda do
-            homePage = DATABASE[:pageresources].find({:name => 'homepage'}).first['dataObj']
-            partners = homePage['partners']
-            partners.delete_at(params['index'].to_i)
-            json DATABASE[:pageresources].update_one({'name' => 'homepage'}, '$set' => {'dataObj.partners' => partners})
+            resource = PageResource.find_by(name: 'homepage')
+            homepage = resource.dataObj
+            homePage['partners'].delete_at(params['index'].to_i)
+            updated_resource = resource.update_attributes(
+              dataObj: homepage,
+              updated_at: DateTime.now
+            )
+            json(updated_resource)
           end
 
           app.get '/api/v1/resources/:pagename', &get_page_resources
           app.get '/api/v1/resources/update/heroimage', &update_hero_image
-          app.put '/api/v1/admin/waiver/:type/update', &update_waiver_info
+          app.put '/api/v1/admin/waiver/:type/update', &update_waiver_form_info
           app.post '/api/v1/admin/partner/add', &add_partner
           app.post '/api/v1/admin/partner/delete', &delete_partner
-
         end
-
       end
     end
   end

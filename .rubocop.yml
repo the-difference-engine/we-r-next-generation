@@ -1,0 +1,3 @@
+Metrics/LineLength:
+  # Change the default 80 chars limit value
+  Max: 120

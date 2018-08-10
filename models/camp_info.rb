@@ -1,5 +1,9 @@
+# frozen_string_literal: true
+
 class CampInfo
   include Mongoid::Document
+  store_in collection: 'campinfo'
 
-  field :field_name, type: String
+  field :title, type: String
+  field :content, type: String
 end
