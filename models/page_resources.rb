@@ -2,7 +2,7 @@
 
 class PageResource
   include Mongoid::Document
-  store_in collection: 'pageresource'
+  store_in collection: 'pageresources'
 
   field :name, type: String
   field :partner, type: String

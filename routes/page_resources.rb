@@ -6,7 +6,8 @@ module Sinatra
       module PageResources
         def self.registered(app)
           get_page_resources = lambda do
-            if PageResource.find_by(name: params[:pagename])
+            resource = PageResource.find_by(name: params[:pagename])
+            if resource
               json(resource.dataObj)
             else
               halt 404, 'No resource found with that ID.'
