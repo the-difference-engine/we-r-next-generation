@@ -86,7 +86,6 @@ module Sinatra
               if type == 'all'
                 status = application[:status].to_sym
                 id = application[:_id].to_s
-                applications[status][:apps][id] = application.to_h
               elsif application[:type] == type
                 status = application[:status].to_sym
                 id = application[:_id].to_s
