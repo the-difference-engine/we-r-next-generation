@@ -25,10 +25,10 @@ module Sinatra
           end
 
           update_camp_session = lambda do
-            camp_to_update = CampSession.find(params[:id])
+            camp = CampSession.find(params[:id])
             params['params']['updated_at'] = DateTime.now
-            updated_camp = camp_to_update.update_attributes(params['params'])
-            json(updated_camp)
+            camp.update_attributes(params['params'])
+            json(camp)
           end
 
           delete_camp_session = lambda do

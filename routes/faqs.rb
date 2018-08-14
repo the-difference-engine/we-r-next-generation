@@ -38,8 +38,8 @@ module Sinatra
           update_question = lambda do
             question = FAQ.find(params[:id])
             if question
-              updated_question = question.update_attributes(params['params'])
-              json(updated_question)
+              question.update_attributes(params['params'])
+              json(question)
             else
               halt 404, 'No FAQ found with that ID.'
             end
