@@ -20,6 +20,8 @@ DATABASE = Mongo::Client.new(ENV['MONGODB_URL'])
 Mongoid.load! 'mongoid.yml'
 
 class WeRNextGenerationApp < Sinatra::Base
+  register Sinatra::Cors
+
   set :allow_origin, '*'
   set :allow_methods, 'GET,HEAD,POST,DELETE,PUT,OPTIONS'
   set :allow_headers, 'content-type,if-modified-since,x-token'
@@ -30,7 +32,7 @@ class WeRNextGenerationApp < Sinatra::Base
     'faq',
     'profiles',
     'applications/waiver/:id',
-    'camp/session/create'
+    'camp/session/create',
   ]
   get_white_list = [
     'resources',
@@ -40,7 +42,8 @@ class WeRNextGenerationApp < Sinatra::Base
     'applications/volunteers',
     'successStories',
     'health-check',
-    'resetPassword'
+    'resetPassword',
+    'friends',
   ]
   put_white_list = [
     'profiles/activate',
@@ -112,4 +115,5 @@ class WeRNextGenerationApp < Sinatra::Base
   register Sinatra::WeRNextGenerationApp::Routing::Profiles
   register Sinatra::WeRNextGenerationApp::Routing::Sessions
   register Sinatra::WeRNextGenerationApp::Routing::SuccessStories
+  register Sinatra::WeRNextGenerationApp::Routing::Friends
 end
