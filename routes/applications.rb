@@ -86,11 +86,11 @@ module Sinatra
               if type == 'all'
                 status = application[:status].to_sym
                 id = application[:_id].to_s
-                applications[status][:apps][id] = application.to_h
+                applications[status][:apps][id] = application
               elsif application[:type] == type
                 status = application[:status].to_sym
                 id = application[:_id].to_s
-                applications[status][:apps][id] = application.to_h
+                applications[status][:apps][id] = application
                 if application[:type] == 'camper'
                   applications[status][:apps][id]['camp_data'] = sessions[application[:camp]]
                 end
@@ -121,10 +121,9 @@ module Sinatra
             application = WRNGApplication.find(params[:id])
 
             if application
-              updated_application = application.update_attributes(status: new_params['statusChange'])
-
-              updated_application['camp_data'] = CampSession.find(application.camp) if updated_application[:camp]
-              json(updated_application)
+              application.update_attributes(status: new_params['statusChange'])
+              application['camp_data'] = CampSession.find(application.camp) if application[:camp]
+              json(application)
             else
               halt 401, 'No application found with that ID.'
             end
