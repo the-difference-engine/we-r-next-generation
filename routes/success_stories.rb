@@ -16,8 +16,8 @@ module Sinatra
           update_success_story = lambda do
             story = SuccessStory.find(params[:id])
             if story
-              updated_story = story.update_attributes(params['params'])
-              json(updated_story)
+              story.update_attributes(params['params'])
+              json(story)
             else
               halt 404, 'No success story found with that ID.'
             end
