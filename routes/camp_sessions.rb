@@ -6,7 +6,18 @@ module Sinatra
       module CampSessions
         def self.registered(app)
           get_all_camp_sessions = lambda do
-            json(CampInfo.all)
+            # exclude created at and updated at fields --
+            # avoids a 'getlocal' method error
+            camps = CampSession.all.only(
+              :name,
+              :date_start,
+              :date_end,
+              :description,
+              :poc,
+              :limit,
+              :status
+            )
+            json(camps)
           end
 
           create_new_camp_session = lambda do
