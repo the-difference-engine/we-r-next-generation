@@ -26,6 +26,8 @@ class WeRNextGenerationApp < Sinatra::Base
   set :allow_headers, 'content-type,if-modified-since,x-token'
   set :expose_headers, 'location,link'
 
+  use Rack::PostBodyContentTypeParser
+
   post_white_list = [
     'sessions',
     'faq',
@@ -87,4 +89,5 @@ class WeRNextGenerationApp < Sinatra::Base
   register Sinatra::WeRNextGenerationApp::Routing::Profiles
   register Sinatra::WeRNextGenerationApp::Routing::Sessions
   register Sinatra::WeRNextGenerationApp::Routing::SuccessStories
+  run!
 end
