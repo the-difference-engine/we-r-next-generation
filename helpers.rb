@@ -101,11 +101,11 @@ module Sinatra
       end
 
       def check_session_presence(session)
-        halt(401, 'Invalid Token') if session.nil?
+        halt(401, 'Invalid token') if session.nil?
       end
 
       def check_token_legality(token)
-        halt(401, 'Invalid Token') unless BSON::ObjectId.legal?(token)
+        halt(401, 'Invalid token') unless BSON::ObjectId.legal?(token)
       end
 
       def check_admin_permissions(request, profile)
