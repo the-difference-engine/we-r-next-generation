@@ -86,7 +86,7 @@ module Sinatra
 
             if type == 'camper'
               CampInfo.each do |camp_session|
-                sessions[camp_session[:_id].to_s] = camp_session.to_h
+                sessions[camp_session[:_id].to_s] = camp_session
               end
             end
 
@@ -94,11 +94,11 @@ module Sinatra
               if type == 'all'
                 status = application[:status].to_sym
                 id = application[:_id].to_s
-                applications[status][:apps][id] = application.to_h
+                applications[status][:apps][id] = application
               elsif application[:type] == type
                 status = application[:status].to_sym
                 id = application[:_id].to_s
-                applications[status][:apps][id] = application.to_h
+                applications[status][:apps][id] = application
                 if application[:type] == 'camper'
                   applications[status][:apps][id]['camp_data'] = sessions[application[:camp]]
                 end
