@@ -129,10 +129,9 @@ module Sinatra
             application = WRNGApplication.find(params[:id])
 
             if application
-              updated_application = application.update_attributes(status: new_params['statusChange'])
-
-              updated_application['camp_data'] = CampSession.find(application.camp) if updated_application[:camp]
-              json(updated_application)
+              application.update_attributes(status: new_params['statusChange'])
+              application['camp_data'] = CampSession.find(application.camp) if application[:camp]
+              json(application)
             else
               halt 401, 'No application found with that ID.'
             end
