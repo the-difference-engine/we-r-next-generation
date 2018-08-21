@@ -2,6 +2,7 @@
 
 class CampSession
   include Mongoid::Document
+  include Mongoid::Timestamps
 
   field :name, type: String
   field :date_start, type: String
@@ -11,6 +12,4 @@ class CampSession
   field :limit, type: Integer
   field :status, type: String
   field :created_by, type: BSON::ObjectId
-  field :created_at, type: DateTime
-  field :updated_at, type: DateTime
 end

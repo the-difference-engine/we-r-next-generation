@@ -6,17 +6,7 @@ module Sinatra
       module CampSessions
         def self.registered(app)
           get_all_camp_sessions = lambda do
-            # exclude created at and updated at fields --
-            # avoids a 'getlocal' method error
-            camps = CampSession.all.only(
-              :name,
-              :date_start,
-              :date_end,
-              :description,
-              :poc,
-              :limit,
-              :status
-            )
+            camps = CampSession.all()
             json(camps)
           end
 
@@ -37,7 +27,6 @@ module Sinatra
 
           update_camp_session = lambda do
             camp_to_update = CampSession.find(params[:id])
-            params['params']['updated_at'] = DateTime.now
             updated_camp = camp_to_update.update_attributes(params['params'])
             json(updated_camp)
           end
