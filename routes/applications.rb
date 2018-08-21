@@ -90,7 +90,8 @@ module Sinatra
               end
             end
 
-            WRNGApplication.each do |application|
+            all_apps = WRNGApplication.all.order_by(date_signed: :desc, type: :asc)
+            all_apps.each do |application|
               if type == 'all'
                 status = application[:status].to_sym
                 id = application[:_id].to_s
