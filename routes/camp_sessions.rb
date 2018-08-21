@@ -43,7 +43,7 @@ module Sinatra
           end
 
           get_camp_session_applicant_list = lambda do
-            json(Application.where(camp: params[:id]))
+            json(WRNGApplication.where(camp: params[:id]))
           end
 
           app.get '/api/v1/camp/session/get', &get_all_camp_sessions
