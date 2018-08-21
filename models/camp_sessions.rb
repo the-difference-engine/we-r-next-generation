@@ -12,4 +12,6 @@ class CampSession
   field :limit, type: Integer
   field :status, type: String
   field :created_by, type: BSON::ObjectId
+  field :created_at, type: String
+  field :updated_at, type: String
 end

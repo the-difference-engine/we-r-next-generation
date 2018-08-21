@@ -6,7 +6,7 @@ module Sinatra
       module CampSessions
         def self.registered(app)
           get_all_camp_sessions = lambda do
-            camps = CampSession.all()
+            camps = CampSession.all
             json(camps)
           end
 
@@ -26,9 +26,10 @@ module Sinatra
           end
 
           update_camp_session = lambda do
-            camp_to_update = CampSession.find(params[:id])
-            updated_camp = camp_to_update.update_attributes(params['params'])
-            json(updated_camp)
+            camp = CampSession.find(params[:id])
+            params['params']['updated_at'] = DateTime.now
+            camp.update_attributes(params['params'])
+            json(camp)
           end
 
           delete_camp_session = lambda do

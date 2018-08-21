@@ -19,42 +19,42 @@ module Sinatra
             homepage = resource.dataObj
             homepage['heroHistory'].unshift(homepage['heroImage'])
             homepage['heroImage'] = params['heroImage']
-            updated_resource = resource.update_attributes(
+            resource.update_attributes(
               dataObj: homepage,
               updated_at: DateTime.now
             )
-            json(updated_resource)
+            json(resource)
           end
 
           update_waiver_form_info = lambda do
             waiver_form = PageResource.find_by(name: "waiver_#{params[:type]}")
-            updated_waiver_form = waiver_form.update_attributes(
+            waiver_form.update_attributes(
               dataObj: params['data'],
               updated_at: DateTime.now
             )
-            json(updated_waiver_form)
+            json(waiver_form)
           end
 
           add_partner = lambda do
             resource = PageResource.find_by(name: 'homepage')
             homepage = resource.dataObj
             homePage['partners'].push(params['partner'])
-            updated_resource = resource.update_attributes(
+            resource.update_attributes(
               dataObj: homepage,
               updated_at: DateTime.now
             )
-            json(updated_resource)
+            json(resource)
           end
 
           delete_partner = lambda do
             resource = PageResource.find_by(name: 'homepage')
             homepage = resource.dataObj
             homePage['partners'].delete_at(params['index'].to_i)
-            updated_resource = resource.update_attributes(
+            resource.update_attributes(
               dataObj: homepage,
               updated_at: DateTime.now
             )
-            json(updated_resource)
+            json(resource)
           end
 
           app.get '/api/v1/resources/:pagename', &get_page_resources

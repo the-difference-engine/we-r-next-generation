@@ -15,12 +15,12 @@ require_relative 'helpers'
 Dir.glob('routes/*.rb') { |file| require_relative file }
 Dir.glob('models/*.rb') { |file| require_relative file }
 
-# Set MONGODB_URL
-DATABASE = Mongo::Client.new(ENV['MONGODB_URL'])
 Mongoid.load! 'mongoid.yml'
 
+# Main application class
 class WeRNextGenerationApp < Sinatra::Base
   register Sinatra::Cors
+
   set :allow_origin, '*'
   set :allow_methods, 'GET,HEAD,POST,DELETE,PUT,OPTIONS'
   set :allow_headers, 'content-type,if-modified-since,x-token'
@@ -49,39 +49,13 @@ class WeRNextGenerationApp < Sinatra::Base
   ]
 
   before '*' do
-    if (post_white_list.any? { |value| request.path_info.include? '/api/v1/' + value }) && \
-       (request.request_method == 'POST')
-      next
-
-    elsif (get_white_list.any? { |value| request.path_info.include? '/api/v1/' + value }) && \
-          (request.request_method == 'GET')
-      next
-
-    elsif (put_white_list.any? { |value| request.path_info.include? '/api/v1/' + value }) && \
-          (request.request_method == 'PUT')
-      next
-
-    elsif request.request_method == 'OPTIONS'
-      next
-
-    else
-      @token = request.env['HTTP_X_TOKEN']
-      unless @token
-        @token = request.env['rack.request.form_hash'] || ''
-        @token = @token['headers'] || ''
-        @token = @token['x-token'] || ''
-      end
-
-      halt(401, 'No token received from browser request') if @token.nil? || @token.empty?
-
-      @session = Session.find(id: @token)
-      @profile = Profile.find_by(email: @session[:email])
-      halt(401, 'Invalid Token') if @session.nil?
-      halt(401, 'Invalid Token') unless BSON::ObjectId.legal?(@token)
-
-      halt(401, 'Minimum admin profile required') if (request.path_info.include? '/admin/') && \
-                                                     (!@profile || !%w[admin superadmin].include?(@profile.role))
-    end
+    path = request.path_info
+    req_method = request.request_method
+    next if (post_white_list.any? { |value| path.include? '/api/v1/' + value }) && (req_method == 'POST')
+    next if (get_white_list.any? { |value| path.include? '/api/v1/' + value }) && (req_method == 'GET')
+    next if (put_white_list.any? { |value| path.include? '/api/v1/' + value }) && (req_method == 'PUT')
+    next if req_method == 'OPTIONS'
+    validate_token(request)
   end
 
   options '*' do
@@ -105,7 +79,7 @@ class WeRNextGenerationApp < Sinatra::Base
   helpers Sinatra::WeRNextGenerationApp::Helpers
 
   register Sinatra::WeRNextGenerationApp::Routing::Applications
-  register Sinatra::WeRNextGenerationApp::Routing::CampInfo
+  register Sinatra::WeRNextGenerationApp::Routing::CampInformation
   register Sinatra::WeRNextGenerationApp::Routing::CampSessions
   register Sinatra::WeRNextGenerationApp::Routing::FAQs
   register Sinatra::WeRNextGenerationApp::Routing::Opportunities
