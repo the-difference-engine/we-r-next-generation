@@ -51,29 +51,26 @@ module Sinatra
           end
 
           update_profile = lambda do
-            updatedProfile = params[:updatedProfile]
-            if !@profile || @profile[:id].to_s != updatedProfile[:_id][:$oid].to_s
+            changed_profile = params[:updatedProfile]
+            halt 400, 'Parameter requirements were not met.' unless check_parameters(changed_profile, profile_params)
+            if !@profile || @profile[:id].to_s != changed_profile[:_id][:$oid].to_s
               if @profile[:role] != 'superadmin'
-                halt 400, 'Permission Denied.' unless check_parameters(params, profile_params)
+                halt 401, 'Unauthorized.'
               end
             end
-            if !check_parameters(updatedProfile, profile_params)
-              halt 400, 'Parameter requirements were not met.'
-            else
-              if updatedProfile[:change_password] == true
-                if !check_password(@profile[:password_hash], updatedProfile[:oldPassword])
-                  halt 400, 'Invalid Credentials. Permission Denied.'
-                end
-                new_hashed = update_password(updatedProfile[:_id][:$oid], updatedProfile[:newPassword])
-                updatedProfile[:password_hash] = new_hashed
-              end
-              updatedProfile.delete('change_password')
-              updatedProfile.delete('oldPassword')
-              updatedProfile.delete('newPassword')
-              profile = Profile.find(updatedProfile[:_id][:$oid])
-              profile.update_attributes(updatedProfile)
-              json(profile)
-            end
+            changed_profile[:password_hash] = update_or_keep_password(
+                changed_profile[:change_password],
+                @profile[:role],
+                @profile[:password_hash],
+                changed_profile[:oldPassword],
+                changed_profile[:newPassword]
+            )
+            changed_profile.delete('change_password')
+            changed_profile.delete('oldPassword')
+            changed_profile.delete('newPassword')
+            profile = Profile.find(changed_profile[:_id][:$oid])
+            profile.update_attributes(changed_profile)
+            json(profile)
           end
 
           delete_profile = lambda do
@@ -133,7 +130,6 @@ module Sinatra
           app.get '/api/v1/profile/:session_token', &get_profile_by_session_token
           app.put '/api/v1/profiles/:id', &update_profile
           app.post '/api/v1/profile/edit/:id', &update_profile
-          # app.post '/api/v1/profile/edit/:id/changePassword', &update_old_to_new_password
           app.delete '/api/v1/profiles/:id', &delete_profile
           app.put '/api/v1/profiles/activate/:id', &activate_profile
           app.get '/api/v1/resetPassword/:email', &reset_profile_password

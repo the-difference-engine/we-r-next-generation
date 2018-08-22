@@ -40,7 +40,7 @@ module Sinatra
             application = WRNGApplication.find(params[:id])
             waiver = Waiver.find_by(application: params[:id])
             if application && waiver
-              if application && (application[:type] == 'camper' || application[:type] == 'volunteer')
+              if application[:type] == 'camper' || application[:type] == 'volunteer'
                 application['camp_data'] = CampSession.find(application.camp)
               end
               response = {
