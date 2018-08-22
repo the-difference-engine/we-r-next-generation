@@ -55,7 +55,7 @@ module Sinatra
             end
 
             profile = Profile.find(params[:id])
-            profile.update_attributes(params)
+            profile.update_attributes(params['params'])
             json(profile)
           end
 

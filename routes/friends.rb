@@ -27,7 +27,7 @@ module Sinatra
           update_friend = lambda do
             puts params
             friend = Friend.find(params[:id])
-            friend.update_attributes(params)
+            friend.update_attributes(params['params'])
             json(friend)
           end
 
