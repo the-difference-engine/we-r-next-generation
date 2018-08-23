@@ -85,7 +85,7 @@ module Sinatra
             sessions = {}
 
             if type == 'camper'
-              CampInfo.each do |camp_session|
+              CampSession.each do |camp_session|
                 sessions[camp_session[:_id].to_s] = camp_session
               end
             end
