@@ -73,22 +73,16 @@ module Sinatra
 
           delete_profile = lambda do
             profile = Profile.find(params[:id])
-            if profile
-              profile.destroy
-              json(profile)
-            else
-              halt 404, 'No profile found with that ID.'
-            end
+            halt 404, 'No profile found with that ID.' unless profile
+            profile.destroy
+            json(profile)
           end
 
           activate_profile = lambda do
             profile = Profile.find(params[:id])
-            if profile
-              profile.update_attributes(active: true)
-              json(profile)
-            else
-              halt 404, 'No profile found with that ID.'
-            end
+            halt 404, 'No profile found with that ID.' unless profile
+            profile.update_attributes(active: true)
+            json(profile)
           end
 
           reset_profile_password = lambda do

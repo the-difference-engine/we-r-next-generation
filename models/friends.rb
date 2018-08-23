@@ -6,5 +6,4 @@ class Friend
   field :name, type: String
   field :about, type: String
   field :url, type: String
-
 end

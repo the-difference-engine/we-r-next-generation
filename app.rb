@@ -64,7 +64,7 @@ class WeRNextGenerationApp < Sinatra::Base
   end
 
   get '/api/v1/health-check' do
-    Application.first
+    WRNGApplication.first
     CampInfo.first
     CampSession.first
     FAQ.first
