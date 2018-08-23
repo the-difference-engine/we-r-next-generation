@@ -72,18 +72,29 @@ module Sinatra
         correct_pass.is_password?(password)
       end
 
+      def update_or_keep_password(is_changed_pw, user_role, saved_pw_hash, old_pw, new_pw)
+        if is_changed_pw == true
+          if user_role != 'superadmin' && !check_password(saved_pw_hash, old_pw)
+            halt 401, 'Invalid Credentials. Permission Denied'
+          end
+          return create_password_hash(new_pw)
+        else
+          return saved_pw_hash
+        end
+      end
+
       def check_parameters(parameters, required)
         required.each do |req|
           return false unless parameters.include?(req)
         end
-        parameters.length == required.length
+        parameters.length >= required.length
       end
 
       def check_signup_parameters(parameters, required)
         required.each do |req|
           return false if parameters[req] == ''
         end
-        parameters.length == required.length
+        parameters.length >= required.length
       end
 
       def define_token(request)

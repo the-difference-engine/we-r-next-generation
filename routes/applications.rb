@@ -36,10 +36,18 @@ module Sinatra
             json data
           end
 
-          get_application_waiver = lambda do
+          get_application_and_waiver = lambda do
+            application = WRNGApplication.find(params[:id])
             waiver = Waiver.find_by(application: params[:id])
-            if waiver
-              json(waiver)
+            if application && waiver
+              if application[:type] == 'camper' || application[:type] == 'volunteer'
+                application['camp_data'] = CampSession.find(application.camp)
+              end
+              response = {
+                application: application,
+                waiver: waiver
+              }
+              json(response)
             else
               halt 404, 'No waiver found with that ID.'
             end
@@ -78,11 +86,12 @@ module Sinatra
 
             if type == 'camper'
               CampInfo.each do |camp_session|
-                sessions[camp_session[:_id].to_s] = camp_session.to_h
+                sessions[camp_session[:_id].to_s] = camp_session
               end
             end
 
-            WRNGApplication.each do |application|
+            all_apps = WRNGApplication.all.order_by(date_signed: :desc, type: :asc)
+            all_apps.each do |application|
               if type == 'all'
                 status = application[:status].to_sym
                 id = application[:_id].to_s
@@ -142,7 +151,7 @@ module Sinatra
           app.post '/api/v1/applications', &create_an_application
           app.post '/api/v1/applications/waiver', &create_application_with_waiver
           app.get '/api/v1/profiles/applicationcheck/:id', &get_type_and_id_of_all_applications
-          app.get '/api/v1/applications/:id/waiver', &get_application_waiver
+          app.get '/api/v1/applications/:id/waiver', &get_application_and_waiver
           app.get '/api/v1/profile/applications', &get_all_applications_by_user
 
           app.get '/api/v1/admin/applications/:type', &get_applications_by_type
