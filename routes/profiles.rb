@@ -5,16 +5,16 @@ module Sinatra
     module Routing
       module Profiles
         def self.registered(app)
-          profile_params = %w[full_name email address phone_number signature camp_id status bio user_name password]
-          signup_params = %w[name email password password_hash]
+          profile_params = %w[full_name address1 city state_province country zip_code phone_number email active role password_hash]
+          signup_params = %w[name address1 city state_province country zip_code phone_number email password password_hash]
 
           get_all_profiles = lambda do
             json(Profile.all)
           end
 
           create_a_profile = lambda do
-            profile = params
-            profile['password_hash'] = create_password_hash(params['password'])
+            profile = params[:newUser]
+            profile['password_hash'] = create_password_hash(profile[:password])
             if !check_signup_parameters(profile, signup_params)
               halt 400, 'Parameter requirements were not met.'
             elsif Profile.find_by(email: profile['email'])
@@ -23,6 +23,7 @@ module Sinatra
               profile[:full_name] = profile.delete :name
               profile['active'] = true
               profile.delete('password')
+              profile.delete('password_confirm')
               profile = Profile.create(profile)
               url = 'http://wernextgeneration.org/#/confirmation/' + profile.id
               send_email(
@@ -50,13 +51,29 @@ module Sinatra
           end
 
           update_profile = lambda do
-            if !@profile || @profile[:role] != 'superadmin'
-              halt 400, 'Parameter requirements were not met.' unless check_parameters(params, profile_params)
+            updatedProfile = params[:updatedProfile]
+            if !@profile || @profile[:id].to_s != updatedProfile[:_id][:$oid].to_s
+              if @profile[:role] != 'superadmin'
+                halt 400, 'Permission Denied.' unless check_parameters(params, profile_params)
+              end
             end
-
-            profile = Profile.find(params[:id])
-            profile.update_attributes(params)
-            json(profile)
+            if !check_parameters(updatedProfile, profile_params)
+              halt 400, 'Parameter requirements were not met.'
+            else
+              if updatedProfile[:change_password] == true
+                if !check_password(@profile[:password_hash], updatedProfile[:oldPassword])
+                  halt 400, 'Invalid Credentials. Permission Denied.'
+                end
+                new_hashed = update_password(updatedProfile[:_id][:$oid], updatedProfile[:newPassword])
+                updatedProfile[:password_hash] = new_hashed
+              end
+              updatedProfile.delete('change_password')
+              updatedProfile.delete('oldPassword')
+              updatedProfile.delete('newPassword')
+              profile = Profile.find(updatedProfile[:_id][:$oid])
+              profile.update_attributes(updatedProfile)
+              json(profile)
+            end
           end
 
           delete_profile = lambda do
@@ -116,6 +133,7 @@ module Sinatra
           app.get '/api/v1/profile/:session_token', &get_profile_by_session_token
           app.put '/api/v1/profiles/:id', &update_profile
           app.post '/api/v1/profile/edit/:id', &update_profile
+          # app.post '/api/v1/profile/edit/:id/changePassword', &update_old_to_new_password
           app.delete '/api/v1/profiles/:id', &delete_profile
           app.put '/api/v1/profiles/activate/:id', &activate_profile
           app.get '/api/v1/resetPassword/:email', &reset_profile_password

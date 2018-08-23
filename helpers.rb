@@ -72,18 +72,24 @@ module Sinatra
         correct_pass.is_password?(password)
       end
 
+      def update_password(profileId, newPassword)
+        new_hashed_pw = create_password_hash(newPassword)
+        Profile.find(profileId).update(password_hash: new_hashed_pw)
+        return new_hashed_pw
+      end
+
       def check_parameters(parameters, required)
         required.each do |req|
           return false unless parameters.include?(req)
         end
-        parameters.length == required.length
+        parameters.length >= required.length
       end
 
       def check_signup_parameters(parameters, required)
         required.each do |req|
           return false if parameters[req] == ''
         end
-        parameters.length == required.length
+        parameters.length >= required.length
       end
 
       def define_token(request)
