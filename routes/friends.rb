@@ -11,12 +11,9 @@ module Sinatra
 
           delete_friend = lambda do
             friend = Friend.find(params[:id])
-            if friend
-              friend.destroy
-              json(friend)
-            else
-              halt 404, 'No friend found with that ID.'
-            end
+            halt 404, 'No friend found with that ID.' unless friend
+            friend.destroy
+            json(friend)
           end
 
           create_friend = lambda do
