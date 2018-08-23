@@ -5,16 +5,16 @@ module Sinatra
     module Routing
       module Profiles
         def self.registered(app)
-          profile_params = %w[full_name email address phone_number signature camp_id status bio user_name password]
-          signup_params = %w[name email password password_hash]
+          profile_params = %w[full_name address1 city state_province country zip_code phone_number email active role password_hash]
+          signup_params = %w[name address1 city state_province country zip_code phone_number email password password_hash]
 
           get_all_profiles = lambda do
             json(Profile.all)
           end
 
           create_a_profile = lambda do
-            profile = params
-            profile['password_hash'] = create_password_hash(params['password'])
+            profile = params[:newUser]
+            profile['password_hash'] = create_password_hash(profile[:password])
             if !check_signup_parameters(profile, signup_params)
               halt 400, 'Parameter requirements were not met.'
             elsif Profile.find_by(email: profile['email'])
@@ -23,6 +23,7 @@ module Sinatra
               profile[:full_name] = profile.delete :name
               profile['active'] = true
               profile.delete('password')
+              profile.delete('password_confirm')
               profile = Profile.create(profile)
               url = 'http://wernextgeneration.org/#/confirmation/' + profile.id
               send_email(
@@ -50,12 +51,25 @@ module Sinatra
           end
 
           update_profile = lambda do
-            if !@profile || @profile[:role] != 'superadmin'
-              halt 400, 'Parameter requirements were not met.' unless check_parameters(params, profile_params)
+            changed_profile = params[:updatedProfile]
+            halt 400, 'Parameter requirements were not met.' unless check_parameters(changed_profile, profile_params)
+            if !@profile || @profile[:id].to_s != changed_profile[:_id][:$oid].to_s
+              if @profile[:role] != 'superadmin'
+                halt 401, 'Unauthorized.'
+              end
             end
-
-            profile = Profile.find(params[:id])
-            profile.update_attributes(params['params'])
+            changed_profile[:password_hash] = update_or_keep_password(
+                changed_profile[:change_password],
+                @profile[:role],
+                @profile[:password_hash],
+                changed_profile[:oldPassword],
+                changed_profile[:newPassword]
+            )
+            changed_profile.delete('change_password')
+            changed_profile.delete('oldPassword')
+            changed_profile.delete('newPassword')
+            profile = Profile.find(changed_profile[:_id][:$oid])
+            profile.update_attributes(changed_profile)
             json(profile)
           end
 

@@ -2,6 +2,7 @@
 
 class CampSession
   include Mongoid::Document
+  include Mongoid::Timestamps
 
   field :name, type: String
   field :date_start, type: String
