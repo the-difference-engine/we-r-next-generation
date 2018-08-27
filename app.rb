@@ -31,7 +31,7 @@ class WeRNextGenerationApp < Sinatra::Base
     'faq',
     'profiles',
     'applications/waiver/:id',
-    'camp/session/create'
+    'camp/session/create',
   ]
   get_white_list = [
     'resources',
@@ -41,7 +41,8 @@ class WeRNextGenerationApp < Sinatra::Base
     'applications/volunteers',
     'successStories',
     'health-check',
-    'resetPassword'
+    'resetPassword',
+    'friends',
   ]
   put_white_list = [
     'profiles/activate',
@@ -63,7 +64,7 @@ class WeRNextGenerationApp < Sinatra::Base
   end
 
   get '/api/v1/health-check' do
-    Application.first
+    WRNGApplication.first
     CampInfo.first
     CampSession.first
     FAQ.first
@@ -87,4 +88,5 @@ class WeRNextGenerationApp < Sinatra::Base
   register Sinatra::WeRNextGenerationApp::Routing::Profiles
   register Sinatra::WeRNextGenerationApp::Routing::Sessions
   register Sinatra::WeRNextGenerationApp::Routing::SuccessStories
+  register Sinatra::WeRNextGenerationApp::Routing::Friends
 end

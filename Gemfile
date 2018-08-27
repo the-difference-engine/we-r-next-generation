@@ -18,6 +18,7 @@ gem 'bcrypt'
 gem 'pry'
 gem 'thin'
 gem 'mongoid'
+gem 'faker'
 
 # for tests
 group :test do

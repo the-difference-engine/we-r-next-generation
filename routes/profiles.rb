@@ -51,20 +51,18 @@ module Sinatra
           end
 
           update_profile = lambda do
-            changed_profile = params[:updatedProfile]
-            halt 400, 'Parameter requirements were not met.' unless check_parameters(changed_profile, profile_params)
+            changed_profile = params[:params]
             if !@profile || @profile[:id].to_s != changed_profile[:_id][:$oid].to_s
-              if @profile[:role] != 'superadmin'
-                halt 401, 'Unauthorized.'
-              end
+              halt 401, 'Unauthorized.' unless @profile[:role] == 'superadmin'
             end
             changed_profile[:password_hash] = update_or_keep_password(
-                changed_profile[:change_password],
-                @profile[:role],
-                @profile[:password_hash],
-                changed_profile[:oldPassword],
-                changed_profile[:newPassword]
+              changed_profile[:change_password],
+              @profile[:role],
+              @profile[:password_hash],
+              changed_profile[:oldPassword],
+              changed_profile[:newPassword]
             )
+            changed_profile.delete('registration_date')
             changed_profile.delete('change_password')
             changed_profile.delete('oldPassword')
             changed_profile.delete('newPassword')
@@ -75,22 +73,16 @@ module Sinatra
 
           delete_profile = lambda do
             profile = Profile.find(params[:id])
-            if profile
-              profile.destroy
-              json(profile)
-            else
-              halt 404, 'No profile found with that ID.'
-            end
+            halt 404, 'No profile found with that ID.' unless profile
+            profile.destroy
+            json(profile)
           end
 
           activate_profile = lambda do
             profile = Profile.find(params[:id])
-            if profile
-              profile.update_attributes(active: true)
-              json(profile)
-            else
-              halt 404, 'No profile found with that ID.'
-            end
+            halt 404, 'No profile found with that ID.' unless profile
+            profile.update_attributes(active: true)
+            json(profile)
           end
 
           reset_profile_password = lambda do
