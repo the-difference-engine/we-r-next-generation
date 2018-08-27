@@ -38,7 +38,11 @@ module Sinatra
 
           get_application_and_waiver = lambda do
             application = WRNGApplication.find(params[:id])
-            waiver = Waiver.find_by(application: params[:id])
+            if application && application[:type] != 'partner'
+              waiver = Waiver.find_by(application: params[:id])
+            else
+              waiver = {}
+            end
             if application && waiver
               if application[:type] == 'camper' || application[:type] == 'volunteer'
                 application['camp_data'] = CampSession.find(application.camp)
