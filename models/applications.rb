@@ -24,5 +24,6 @@ class WRNGApplication
   field :companyName, type: String
   field :companyLogo, type: String
   field :companyUrl, type: String
+  field :appNote, type: String
   field :profileId, type: BSON::ObjectId
 end
