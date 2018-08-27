@@ -6,8 +6,6 @@ module Sinatra
       module Applications
         def self.registered(app)
           create_an_application = lambda do
-            puts("Create an Application")
-            puts(params)
             application = WRNGApplication.create(params['params'])
             json application
           end
