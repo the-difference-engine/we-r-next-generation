@@ -6,9 +6,10 @@ module Sinatra
       module PageResources
         def self.registered(app)
           get_page_resources = lambda do
-            resource = PageResource.find_by(name: params[:pagename])
-            if resource
-              json(resource.dataObj)
+            response = PageResource.find_by(name: params[:pagename])
+            if response
+              response[:partners] = WRNGApplication.where(type: 'partner', status: 'approved')
+              json(response)
             else
               halt 404, 'No resource found with that ID.'
             end
